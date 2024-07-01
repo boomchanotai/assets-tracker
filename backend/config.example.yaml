@@ -1,0 +1,3 @@
+logger:
+  debug: true
+  output: "text"
