@@ -50,7 +50,6 @@
 							</Select.Content>
 						</Select.Root>
 					</div>
-					{type}
 					<div class="grid grid-cols-4 items-center gap-4">
 						<Label for="name" class="text-right">Account No.</Label>
 						<Input
