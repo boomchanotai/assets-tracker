@@ -6,8 +6,25 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
 	import Balance from '@/components/Balance.svelte';
+
+	const pockets = [
+		{
+			id: '1',
+			name: 'เงินเดือน',
+			amount: 11000
+		},
+		{
+			id: '2',
+			name: 'เงินออม',
+			amount: 2000
+		},
+		{
+			id: '3',
+			name: 'เที่ยวญี่ปุ่น',
+			amount: 5000
+		}
+	];
 </script>
 
 <div class="space-y-4">
@@ -36,9 +53,9 @@
 	<Container class="space-y-8">
 		<Cashbox amount={13000} />
 		<div class="grid grid-cols-2 gap-8">
-			<Pocket name="เงินเดือน" amount={11000} />
-			<Pocket name="เงินออม" amount={2000} />
-			<Pocket name="เที่ยวญี่ปุ่น" amount={5000} />
+			{#each pockets as pocket}
+				<Pocket class="cursor-grab" id={pocket.id} name={pocket.name} amount={pocket.amount} />
+			{/each}
 		</div>
 	</Container>
 </div>
