@@ -8,6 +8,7 @@
 
 <Draggable
 	draggableId={id}
+	draggable={false}
 	class={cn(
 		'w-full flex flex-col justify-center items-center border border-black rounded-lg p-4 [&_*]:pointer-events-none',
 		$$props.class

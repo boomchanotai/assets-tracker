@@ -17,6 +17,7 @@
 
 <Draggable
 	draggableId={id}
+	draggable={true}
 	class={cn(
 		'bg-white w-full h-full flex flex-col justify-start items-start border border-black rounded-lg p-4 [&_*]:pointer-events-none',
 		$$props.class

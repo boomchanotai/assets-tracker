@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { dragstart, dragover, dragenter, dragleave, drop } from '@/dragndrop';
 	export let draggableId: string;
+	export let draggable: boolean;
 </script>
 
 <button
-	draggable={true}
+	{draggable}
 	aria-grabbed={true}
 	on:dragstart={(e) => dragstart(e, draggableId)}
 	on:dragover={dragover}
