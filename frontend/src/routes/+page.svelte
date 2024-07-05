@@ -51,7 +51,7 @@
 	</Container>
 
 	<Container class="space-y-8">
-		<Cashbox amount={13000} />
+		<Cashbox class="cursor-grab" id="0" amount={13000} />
 		<div class="grid grid-cols-2 gap-8">
 			{#each pockets as pocket}
 				<Pocket class="cursor-grab" id={pocket.id} name={pocket.name} amount={pocket.amount} />
