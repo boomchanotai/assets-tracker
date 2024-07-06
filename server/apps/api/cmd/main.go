@@ -18,6 +18,7 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/pkg/redis"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -69,7 +70,9 @@ func main() {
 		},
 	})
 
-	app.Use(cors.New())
+	app.Use(cors.New()).
+		Use(requestid.New()).
+		Use(middlewares.RequestLogger())
 
 	authGroup := app.Group("/v1/auth")
 	authController.Mount(authGroup, authMiddleware)
