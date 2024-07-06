@@ -29,7 +29,6 @@ func main() {
 		logger.PanicContext(ctx, "failed to initialize logger", slog.Any("error", err))
 	}
 
-	fmt.Println(conf.Postgres.String())
 	db, err := gorm.Open(postgres.Open(conf.Postgres.String()), &gorm.Config{})
 	if err != nil {
 		logger.PanicContext(ctx, "failed to connect to database", slog.Any("error", err))
