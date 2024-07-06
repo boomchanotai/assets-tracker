@@ -40,6 +40,20 @@ func checkPassword(hashPassword, password string) bool {
 	return err == nil
 }
 
+func (u *usecase) generateAuthToken(ctx context.Context, user entity.User) (accessToken, refreshToken string, exp int64, err error) {
+	// TODO: SECRET should be stored in config (Access token secret) (Refresh token secret)
+	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(&user, "SECRET", "SECRET")
+	if err != nil {
+		return "", "", 0, errors.Wrap(err, "failed to generate token pair")
+	}
+
+	if err := u.userRepo.SetUserAuthToken(ctx, user.ID, *cachedToken); err != nil {
+		return "", "", 0, errors.Wrap(err, "failed to set user auth token")
+	}
+
+	return accessToken, refreshToken, exp, nil
+}
+
 func (u *usecase) Register(ctx context.Context, email, name, password string) (*entity.Token, error) {
 	if _, err := u.userRepo.GetUserByEmail(ctx, email); err == nil {
 		return nil, errors.Wrap(ErrEmailAlreadyExists, "email already exists")
@@ -59,14 +73,9 @@ func (u *usecase) Register(ctx context.Context, email, name, password string) (*
 		return nil, errors.Wrap(err, "failed to create user")
 	}
 
-	// TODO: SECRET should be stored in config
-	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(user, "SECRET", "SECRET")
+	accessToken, refreshToken, exp, err := u.generateAuthToken(ctx, *user)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate token pair")
-	}
-
-	if err := u.userRepo.SetUserAuthToken(ctx, user.ID, *cachedToken); err != nil {
-		return nil, errors.Wrap(err, "failed to set user auth token")
+		return nil, errors.Wrap(err, "failed to generate auth token")
 	}
 
 	return &entity.Token{
@@ -86,14 +95,9 @@ func (u *usecase) Login(ctx context.Context, email, password string) (*entity.To
 		return nil, errors.Wrap(ErrIncorrectEmailOrPassword, "incorrect email or password")
 	}
 
-	// TODO: SECRET should be stored in config
-	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(user, "SECRET", "SECRET")
+	accessToken, refreshToken, exp, err := u.generateAuthToken(ctx, *user)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate token pair")
-	}
-
-	if err := u.userRepo.SetUserAuthToken(ctx, user.ID, *cachedToken); err != nil {
-		return nil, errors.Wrap(err, "failed to set user auth token")
+		return nil, errors.Wrap(err, "failed to generate auth token")
 	}
 
 	return &entity.Token{
@@ -134,14 +138,9 @@ func (u *usecase) RefreshToken(ctx context.Context, token string) (*entity.Token
 		return nil, errors.Wrap(err, "user not found")
 	}
 
-	// TODO: SECRET should be stored in config
-	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(user, "SECRET", "SECRET")
+	accessToken, refreshToken, exp, err := u.generateAuthToken(ctx, *user)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate token pair")
-	}
-
-	if err := u.userRepo.SetUserAuthToken(ctx, user.ID, *cachedToken); err != nil {
-		return nil, errors.Wrap(err, "failed to set user auth token")
+		return nil, errors.Wrap(err, "failed to generate auth token")
 	}
 
 	return &entity.Token{
