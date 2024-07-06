@@ -1,8 +1,12 @@
 package config
 
 import (
-	"github.com/boomchanotai/assets-tracker/pkg/logger"
+	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/spf13/viper"
+)
+
+const (
+	defaultPath = "./server/apps/api"
 )
 
 type AppConfig struct {
@@ -12,7 +16,7 @@ type AppConfig struct {
 func Load() *AppConfig {
 	appConfig := &AppConfig{}
 	viper.SetConfigName("config")
-	viper.AddConfigPath("./")
+	viper.AddConfigPath(defaultPath)
 	viper.SetConfigType("yaml")
 
 	err := viper.ReadInConfig()

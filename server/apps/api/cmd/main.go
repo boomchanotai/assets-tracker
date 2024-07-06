@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/boomchanotai/assets-tracker/internal/config"
-	"github.com/boomchanotai/assets-tracker/pkg/logger"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
+	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 )
 
 func main() {
