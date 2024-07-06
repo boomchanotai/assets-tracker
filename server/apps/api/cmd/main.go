@@ -14,6 +14,7 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
+	"github.com/boomchanotai/assets-tracker/server/pkg/redis"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"gorm.io/driver/postgres"
@@ -35,7 +36,17 @@ func main() {
 		logger.PanicContext(ctx, "failed to connect to database", slog.Any("error", err))
 	}
 
-	userRepo := user.NewRepository(db)
+	redisConn, err := redis.New(ctx, conf.Redis)
+	if err != nil {
+		logger.PanicContext(ctx, "failed to connect to redis", slog.Any("error", err))
+	}
+	defer func() {
+		if err := redisConn.Close(); err != nil {
+			logger.ErrorContext(ctx, "failed to close redis connection", slog.Any("error", err))
+		}
+	}()
+
+	userRepo := user.NewRepository(db, redisConn)
 	userUsecase := user.NewUsecase(userRepo)
 	userController := user.NewController(userUsecase)
 

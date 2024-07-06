@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/boomchanotai/assets-tracker/server/pkg/postgres"
+	"github.com/boomchanotai/assets-tracker/server/pkg/redis"
 	"github.com/spf13/viper"
 )
 
@@ -15,6 +16,7 @@ type AppConfig struct {
 	Port     int             `mapstructure:"port"`
 	Logger   logger.Config   `mapstructure:"logger"`
 	Postgres postgres.Config `mapstructure:"postgres"`
+	Redis    redis.Config    `mapstructure:"redis"`
 }
 
 func Load() *AppConfig {
