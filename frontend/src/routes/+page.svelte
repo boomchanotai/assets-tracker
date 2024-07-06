@@ -15,22 +15,24 @@
 
 	<Container class="flex flex-row justify-between">
 		<Balance amount={14500} />
-		<Dialog.Root>
-			<Dialog.Trigger>
-				<Button>อัพเดตยอดเงิน</Button>
-			</Dialog.Trigger>
-			<Dialog.Content class="sm:max-w-[425px]">
-				<Dialog.Header class="mb-4">
-					<Dialog.Title>Update Balance</Dialog.Title>
-				</Dialog.Header>
-				<div>
-					<Input id="balance" type="number" placeholder="Amount" />
-				</div>
-				<Dialog.Footer>
-					<Button type="submit">Save changes</Button>
-				</Dialog.Footer>
-			</Dialog.Content>
-		</Dialog.Root>
+		<div>
+			<Dialog.Root>
+				<Dialog.Trigger>
+					<Button>อัพเดตยอดเงิน</Button>
+				</Dialog.Trigger>
+				<Dialog.Content class="sm:max-w-[425px]">
+					<Dialog.Header class="mb-4">
+						<Dialog.Title>Update Balance</Dialog.Title>
+					</Dialog.Header>
+					<div>
+						<Input id="balance" type="number" placeholder="Amount" />
+					</div>
+					<Dialog.Footer>
+						<Button type="submit">Save changes</Button>
+					</Dialog.Footer>
+				</Dialog.Content>
+			</Dialog.Root>
+		</div>
 	</Container>
 
 	<Container class="space-y-8">
