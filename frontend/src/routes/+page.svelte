@@ -7,24 +7,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import Balance from '@/components/Balance.svelte';
 	import Trash from '@/components/Trash.svelte';
-
-	const pockets = [
-		{
-			id: '1',
-			name: 'เงินเดือน',
-			amount: 11000
-		},
-		{
-			id: '2',
-			name: 'เงินออม',
-			amount: 2000
-		},
-		{
-			id: '3',
-			name: 'เที่ยวญี่ปุ่น',
-			amount: 5000
-		}
-	];
+	import { pockets } from '@/constants/pocket';
 </script>
 
 <div class="space-y-4">
@@ -37,11 +20,11 @@
 				<Button>อัพเดตยอดเงิน</Button>
 			</Dialog.Trigger>
 			<Dialog.Content class="sm:max-w-[425px]">
-				<Dialog.Header>
+				<Dialog.Header class="mb-4">
 					<Dialog.Title>Update Balance</Dialog.Title>
 				</Dialog.Header>
 				<div>
-					<Input id="balance" type="number" placeholder="Balance" />
+					<Input id="balance" type="number" placeholder="Amount" />
 				</div>
 				<Dialog.Footer>
 					<Button type="submit">Save changes</Button>
@@ -52,8 +35,12 @@
 
 	<Container class="space-y-8">
 		<div class="grid grid-cols-12 gap-4">
-			<Pocket class="col-span-9" id={'cashbox'} name={'Cashbox'} amount={13000} />
-			<Trash class="col-span-3" />
+			<div class="col-span-9 h-full">
+				<Pocket id={'cashbox'} name={'Cashbox'} amount={13000} />
+			</div>
+			<div class="col-span-3">
+				<Trash />
+			</div>
 		</div>
 		<div class="grid grid-cols-2 gap-8">
 			{#each pockets as pocket}
