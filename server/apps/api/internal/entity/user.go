@@ -38,7 +38,7 @@ type CachedTokens struct {
 }
 
 type JWTentity struct {
-	ID  uuid.UUID `json:"id"` // user Id
+	ID  uuid.UUID `json:"id"` // User ID
 	UID uuid.UUID `json:"uid"`
 	jwt.MapClaims
 }

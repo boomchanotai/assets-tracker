@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
@@ -43,7 +44,9 @@ func (r *authMiddleware) Auth(ctx *fiber.Ctx) error {
 
 	claims, err := r.validateToken(ctx.UserContext(), bearerToken)
 	if err != nil {
-		return errors.Wrap(ErrInvalidToken, "invalid token")
+		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.HttpResponse{
+			Result: "Unauthorized",
+		})
 	}
 
 	userContext := r.withUserID(ctx.UserContext(), claims.ID)

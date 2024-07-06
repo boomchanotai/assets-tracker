@@ -111,3 +111,50 @@ func (u *usecase) GetProfile(ctx context.Context, userID uuid.UUID) (*entity.Use
 
 	return user, nil
 }
+
+func (u *usecase) RefreshToken(ctx context.Context, token string) (*entity.Token, error) {
+	// TODO: SECRET should be stored in config (Refresh token secret)
+	// Refresh Token
+	claims, err := jwt.ParseToken(token, "SECRET")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse refresh token")
+	}
+
+	cachedToken, err := u.userRepo.GetUserAuthToken(ctx, claims.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get user auth token")
+	}
+
+	if err := jwt.ValidateToken(cachedToken, claims, true); err != nil {
+		return nil, errors.Wrap(err, "failed to validate refresh token")
+	}
+
+	user, err := u.userRepo.GetUser(ctx, claims.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "user not found")
+	}
+
+	// TODO: SECRET should be stored in config
+	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(user, "SECRET", "SECRET")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate token pair")
+	}
+
+	if err := u.userRepo.SetUserAuthToken(ctx, user.ID, *cachedToken); err != nil {
+		return nil, errors.Wrap(err, "failed to set user auth token")
+	}
+
+	return &entity.Token{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		Exp:          exp,
+	}, nil
+}
+
+func (u *usecase) Logout(ctx context.Context, userID uuid.UUID) error {
+	err := u.userRepo.DeleteUserAuthToken(ctx, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete user auth token")
+	}
+	return nil
+}

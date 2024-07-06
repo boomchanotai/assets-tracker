@@ -25,6 +25,7 @@ type Repository interface {
 
 	SetUserAuthToken(ctx context.Context, userID uuid.UUID, token entity.CachedTokens) error
 	GetUserAuthToken(ctx context.Context, userID uuid.UUID) (*entity.CachedTokens, error)
+	DeleteUserAuthToken(ctx context.Context, userID uuid.UUID) error
 }
 
 type user struct {
@@ -128,6 +129,10 @@ func (r *repository) UpdateUser(ctx context.Context, user entity.User) error {
 	panic("not implemented")
 }
 
+func getTokenKey(userID uuid.UUID) string {
+	return AuthTokenKey + ":" + userID.String()
+}
+
 func (r *repository) SetUserAuthToken(ctx context.Context, userID uuid.UUID, token entity.CachedTokens) error {
 	cachedToken, err := msgpack.Marshal(token)
 	if err != nil {
@@ -135,7 +140,7 @@ func (r *repository) SetUserAuthToken(ctx context.Context, userID uuid.UUID, tok
 	}
 
 	// TODO: duration should be stored in config (30 days)
-	err = r.redisClient.Set(ctx, AuthTokenKey+":"+userID.String(), string(cachedToken), time.Minute*60*24*30).Err()
+	err = r.redisClient.Set(ctx, getTokenKey(userID), string(cachedToken), time.Minute*60*24*30).Err()
 	if err != nil {
 		return errors.Wrap(err, "can't set token")
 	}
@@ -144,7 +149,7 @@ func (r *repository) SetUserAuthToken(ctx context.Context, userID uuid.UUID, tok
 }
 
 func (r *repository) GetUserAuthToken(ctx context.Context, userID uuid.UUID) (*entity.CachedTokens, error) {
-	redisToken, err := r.redisClient.Get(ctx, AuthTokenKey+":"+userID.String()).Bytes()
+	redisToken, err := r.redisClient.Get(ctx, getTokenKey(userID)).Bytes()
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get token")
 	}
@@ -156,4 +161,13 @@ func (r *repository) GetUserAuthToken(ctx context.Context, userID uuid.UUID) (*e
 	}
 
 	return cachedToken, nil
+}
+
+func (r *repository) DeleteUserAuthToken(ctx context.Context, userID uuid.UUID) error {
+	err := r.redisClient.Del(ctx, getTokenKey(userID)).Err()
+	if err != nil {
+		return errors.Wrap(err, "can't delete token")
+	}
+
+	return nil
 }

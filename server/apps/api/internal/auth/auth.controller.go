@@ -11,6 +11,8 @@ func (h *controller) Mount(r fiber.Router, authMiddleware middlewares.AuthMiddle
 	r.Post("/register", h.Register)
 	r.Post("/login", h.Login)
 	r.Get("/me", authMiddleware.Auth, h.GetProfile)
+	r.Post("/refresh", h.RefreshToken)
+	r.Post("/logout", authMiddleware.Auth, h.Logout)
 }
 
 type controller struct {
@@ -154,5 +156,51 @@ func (h *controller) GetProfile(ctx *fiber.Ctx) error {
 			Email: user.Email,
 			Name:  user.Name,
 		},
+	})
+}
+
+type logoutResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+	Exp          int64  `json:"exp"`
+}
+
+func (h *controller) RefreshToken(ctx *fiber.Ctx) error {
+	// Refresh Token
+	tokenByte := ctx.GetReqHeaders()["Authorization"]
+	if len(tokenByte) == 0 {
+		return errors.Wrap(middlewares.ErrInvalidToken, "invalid token")
+	}
+
+	bearerToken := tokenByte[0][7:]
+	token, err := h.usecase.RefreshToken(ctx.UserContext(), bearerToken)
+	if err != nil {
+		return errors.Wrap(err, "failed to refresh token")
+	}
+
+	return ctx.JSON(dto.HttpResponse{
+		Result: logoutResponse{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
+			Exp:          token.Exp,
+		},
+	})
+}
+
+func (h *controller) Logout(ctx *fiber.Ctx) error {
+	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
+			Error: "Unauthorized",
+		})
+	}
+
+	err = h.usecase.Logout(ctx.UserContext(), userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to logout")
+	}
+
+	return ctx.JSON(dto.HttpResponse{
+		Result: "Logout successfully",
 	})
 }
