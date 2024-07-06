@@ -1,53 +1,36 @@
 <script lang="ts">
-	import Header from '$lib/components/Header.svelte';
 	import Container from '@/components/Container.svelte';
-	import Pocket from '@/components/Pocket.svelte';
-	import Button from '@/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import Balance from '@/components/Balance.svelte';
-	import Trash from '@/components/Trash.svelte';
-	import { pockets } from '@/constants/pocket';
+	import { Label } from '$lib/components/ui/label/index.js';
 </script>
 
 <div class="space-y-4">
-	<Header />
-
-	<Container class="flex flex-row justify-between">
-		<Balance amount={14500} />
-		<div>
-			<Dialog.Root>
-				<Dialog.Trigger>
-					<Button>อัพเดตยอดเงิน</Button>
-				</Dialog.Trigger>
-				<Dialog.Content class="sm:max-w-[425px]">
-					<Dialog.Header class="mb-4">
-						<Dialog.Title>Update Balance</Dialog.Title>
-					</Dialog.Header>
-					<div>
-						<Input id="balance" type="number" placeholder="Amount" />
+	<Container class="h-svh flex flex-col justify-center items-center">
+		<Card.Root class="w-[350px]">
+			<Card.Header>
+				<Card.Title class="text-center">Sign in</Card.Title>
+				<Card.Description class="text-center">Sign in to your account to continue</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				<form>
+					<div class="grid w-full items-center gap-4">
+						<div class="flex flex-col space-y-1.5">
+							<Label for="name">Email</Label>
+							<Input id="email" type="email" placeholder="Email | อีเมล" />
+						</div>
+						<div class="flex flex-col space-y-1.5">
+							<Label for="name">Password</Label>
+							<Input id="password" type="password" placeholder="Password | พาสเวิร์ด" />
+						</div>
 					</div>
-					<Dialog.Footer>
-						<Button type="submit">Save changes</Button>
-					</Dialog.Footer>
-				</Dialog.Content>
-			</Dialog.Root>
-		</div>
-	</Container>
-
-	<Container class="space-y-8">
-		<div class="grid grid-cols-12 gap-4">
-			<div class="col-span-9 h-full">
-				<Pocket id={'cashbox'} name={'Cashbox'} amount={13000} />
-			</div>
-			<div class="col-span-3">
-				<Trash />
-			</div>
-		</div>
-		<div class="grid grid-cols-2 gap-8">
-			{#each pockets as pocket}
-				<Pocket class="aspect-square" id={pocket.id} name={pocket.name} amount={pocket.amount} />
-			{/each}
-		</div>
+				</form>
+			</Card.Content>
+			<Card.Footer class="flex justify-center">
+				<Button>Sign in</Button>
+			</Card.Footer>
+		</Card.Root>
 	</Container>
 </div>
