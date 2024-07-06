@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/auth"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
@@ -38,6 +39,9 @@ func main() {
 	userUsecase := user.NewUsecase(userRepo)
 	userController := user.NewController(userUsecase)
 
+	authUsecase := auth.NewUsecase(userRepo)
+	authController := auth.NewController(authUsecase)
+
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
 		CaseSensitive: true,
@@ -52,6 +56,9 @@ func main() {
 	})
 
 	app.Use(cors.New())
+
+	authGroup := app.Group("/v1/auth")
+	authController.Mount(authGroup)
 
 	userGroup := app.Group("/v1/user")
 	userController.Mount(userGroup)
