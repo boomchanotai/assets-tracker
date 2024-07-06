@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -40,14 +41,16 @@ type user struct {
 type repository struct {
 	db          *gorm.DB
 	redisClient *redis.Client
+	jwtConfig   *jwt.Config
 }
 
-func NewRepository(db *gorm.DB, redisClient *redis.Client) Repository {
+func NewRepository(db *gorm.DB, redisClient *redis.Client, jwtConfig *jwt.Config) Repository {
 	db.AutoMigrate(&user{})
 
 	return &repository{
 		db:          db,
 		redisClient: redisClient,
+		jwtConfig:   jwtConfig,
 	}
 }
 
@@ -139,8 +142,7 @@ func (r *repository) SetUserAuthToken(ctx context.Context, userID uuid.UUID, tok
 		return errors.Wrap(err, "can't marshal cached token")
 	}
 
-	// TODO: duration should be stored in config (30 days)
-	err = r.redisClient.Set(ctx, getTokenKey(userID), string(cachedToken), time.Minute*60*24*30).Err()
+	err = r.redisClient.Set(ctx, getTokenKey(userID), string(cachedToken), time.Second*time.Duration(r.jwtConfig.AutoLogout)).Err()
 	if err != nil {
 		return errors.Wrap(err, "can't set token")
 	}

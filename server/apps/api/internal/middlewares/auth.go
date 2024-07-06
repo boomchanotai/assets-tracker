@@ -22,12 +22,14 @@ type AuthMiddleware interface {
 }
 
 type authMiddleware struct {
-	authRepo user.Repository
+	userRepo user.Repository
+	config   *jwt.Config
 }
 
-func NewAuthMiddleware(authRepo user.Repository) AuthMiddleware {
+func NewAuthMiddleware(userRepo user.Repository, config *jwt.Config) AuthMiddleware {
 	return &authMiddleware{
-		authRepo: authRepo,
+		userRepo: userRepo,
+		config:   config,
 	}
 }
 
@@ -56,12 +58,12 @@ func (r *authMiddleware) Auth(ctx *fiber.Ctx) error {
 }
 
 func (r *authMiddleware) validateToken(ctx context.Context, bearerToken string) (*entity.JWTentity, error) {
-	parsedToken, err := jwt.ParseToken(bearerToken, "SECRET")
+	parsedToken, err := jwt.ParseToken(bearerToken, r.config.AccessTokenSecret)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse refresh token")
 	}
 
-	cachedToken, err := r.authRepo.GetUserAuthToken(ctx, parsedToken.ID)
+	cachedToken, err := r.userRepo.GetUserAuthToken(ctx, parsedToken.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get cached token")
 	}

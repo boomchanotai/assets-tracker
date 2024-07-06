@@ -47,13 +47,13 @@ func main() {
 		}
 	}()
 
-	userRepo := user.NewRepository(db, redisConn)
+	userRepo := user.NewRepository(db, redisConn, &conf.JWT)
 	userUsecase := user.NewUsecase(userRepo)
 	userController := user.NewController(userUsecase)
 
-	authMiddleware := middlewares.NewAuthMiddleware(userRepo)
+	authMiddleware := middlewares.NewAuthMiddleware(userRepo, &conf.JWT)
 
-	authUsecase := auth.NewUsecase(userRepo)
+	authUsecase := auth.NewUsecase(userRepo, &conf.JWT)
 	authController := auth.NewController(authUsecase, authMiddleware)
 
 	app := fiber.New(fiber.Config{

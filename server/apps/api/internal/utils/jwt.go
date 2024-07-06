@@ -10,9 +10,9 @@ import (
 )
 
 type Config struct {
-	AccessToken  string `mapstructure:"access_token"`
-	RefreshToken string `mapstructure:"refresh_token"`
-	AutoLogout   int    `mapstructure:"auto_logout"`
+	AccessTokenSecret  string `mapstructure:"access_token_secret"`
+	RefreshTokenSecret string `mapstructure:"refresh_token_secret"`
+	AutoLogout         int64  `mapstructure:"auto_logout"`
 }
 
 func CreateToken(userID uuid.UUID, expireMinutes int, secret string) (token string, uid uuid.UUID, exp int64, err error) {

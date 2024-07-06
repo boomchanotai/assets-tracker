@@ -17,12 +17,14 @@ var (
 )
 
 type usecase struct {
-	userRepo user.Repository
+	userRepo  user.Repository
+	jwtConfig *jwt.Config
 }
 
-func NewUsecase(userRepo user.Repository) *usecase {
+func NewUsecase(userRepo user.Repository, jwtConfig *jwt.Config) *usecase {
 	return &usecase{
-		userRepo: userRepo,
+		userRepo:  userRepo,
+		jwtConfig: jwtConfig,
 	}
 }
 
@@ -41,8 +43,7 @@ func checkPassword(hashPassword, password string) bool {
 }
 
 func (u *usecase) generateAuthToken(ctx context.Context, user entity.User) (accessToken, refreshToken string, exp int64, err error) {
-	// TODO: SECRET should be stored in config (Access token secret) (Refresh token secret)
-	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(&user, "SECRET", "SECRET")
+	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(&user, u.jwtConfig.AccessTokenSecret, u.jwtConfig.RefreshTokenSecret)
 	if err != nil {
 		return "", "", 0, errors.Wrap(err, "failed to generate token pair")
 	}
@@ -117,9 +118,8 @@ func (u *usecase) GetProfile(ctx context.Context, userID uuid.UUID) (*entity.Use
 }
 
 func (u *usecase) RefreshToken(ctx context.Context, token string) (*entity.Token, error) {
-	// TODO: SECRET should be stored in config (Refresh token secret)
 	// Refresh Token
-	claims, err := jwt.ParseToken(token, "SECRET")
+	claims, err := jwt.ParseToken(token, u.jwtConfig.RefreshTokenSecret)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse refresh token")
 	}
