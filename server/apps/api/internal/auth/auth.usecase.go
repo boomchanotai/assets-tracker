@@ -7,6 +7,7 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
 	"github.com/cockroachdb/errors"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -100,4 +101,13 @@ func (u *usecase) Login(ctx context.Context, email, password string) (*entity.To
 		RefreshToken: refreshToken,
 		Exp:          exp,
 	}, nil
+}
+
+func (u *usecase) GetProfile(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
+	user, err := u.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get user by id")
+	}
+
+	return user, nil
 }

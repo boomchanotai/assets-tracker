@@ -12,6 +12,7 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/auth"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/boomchanotai/assets-tracker/server/pkg/redis"
@@ -50,8 +51,10 @@ func main() {
 	userUsecase := user.NewUsecase(userRepo)
 	userController := user.NewController(userUsecase)
 
+	authMiddleware := middlewares.NewAuthMiddleware(userRepo)
+
 	authUsecase := auth.NewUsecase(userRepo)
-	authController := auth.NewController(authUsecase)
+	authController := auth.NewController(authUsecase, authMiddleware)
 
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
@@ -69,7 +72,7 @@ func main() {
 	app.Use(cors.New())
 
 	authGroup := app.Group("/v1/auth")
-	authController.Mount(authGroup)
+	authController.Mount(authGroup, authMiddleware)
 
 	userGroup := app.Group("/v1/user")
 	userController.Mount(userGroup)

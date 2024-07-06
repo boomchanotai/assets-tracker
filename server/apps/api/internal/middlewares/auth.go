@@ -3,72 +3,87 @@ package middlewares
 import (
 	"context"
 
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-type UserId struct{}
+var (
+	ErrInvalidToken = errors.New("INVALID_TOKEN")
+)
 
-func Auth(ctx *fiber.Ctx) error {
+type AuthMiddleware interface {
+	Auth(ctx *fiber.Ctx) error
+	GetUserIDFromContext(ctx context.Context) (uuid.UUID, error)
+}
+
+type authMiddleware struct {
+	authRepo user.Repository
+}
+
+func NewAuthMiddleware(authRepo user.Repository) AuthMiddleware {
+	return &authMiddleware{
+		authRepo: authRepo,
+	}
+}
+
+func (r *authMiddleware) Auth(ctx *fiber.Ctx) error {
 	tokenByte := ctx.GetReqHeaders()["Authorization"]
 	if len(tokenByte) == 0 {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
-			Error: "TOKEN_NOT_FOUND",
-		})
+		return errors.Wrap(ErrInvalidToken, "invalid token")
 	}
 
 	bearerToken := tokenByte[0][7:]
 	if len(bearerToken) == 0 {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
-			Result: "TOKEN_NOT_FOUND",
-		})
+		return errors.Wrap(ErrInvalidToken, "invalid token")
 	}
 
-	// TODO: Implement Get Cache token
-	cachedToken := entity.CachedTokens{}
-
-	claims, err := validateToken(bearerToken, cachedToken)
+	claims, err := r.validateToken(ctx.UserContext(), bearerToken)
 	if err != nil {
-		return errors.Wrap(err, "failed to validate token")
+		return errors.Wrap(ErrInvalidToken, "invalid token")
 	}
 
-	userContext := withUserID(ctx.UserContext(), claims.ID)
+	userContext := r.withUserID(ctx.UserContext(), claims.ID)
 	ctx.SetUserContext(userContext)
 
 	return ctx.Next()
 }
 
-func validateToken(accessToken string, cachedToken entity.CachedTokens) (*entity.JWTentity, error) {
-	// TODO: SECRET should be stored in config
-	claims, err := jwt.ParseToken(accessToken, "SECRET")
+func (r *authMiddleware) validateToken(ctx context.Context, bearerToken string) (*entity.JWTentity, error) {
+	parsedToken, err := jwt.ParseToken(bearerToken, "SECRET")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse refresh token")
 	}
 
-	err = jwt.ValidateToken(&cachedToken, claims, false)
+	cachedToken, err := r.authRepo.GetUserAuthToken(ctx, parsedToken.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get cached token")
+	}
+
+	err = jwt.ValidateToken(cachedToken, parsedToken, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate refresh token")
 	}
 
-	return claims, nil
+	return parsedToken, nil
+
 }
 
 type userIDContext struct{}
 
-func withUserID(ctx context.Context, userID uuid.UUID) context.Context {
+func (r *authMiddleware) withUserID(ctx context.Context, userID uuid.UUID) context.Context {
 	return context.WithValue(ctx, userIDContext{}, userID)
 }
 
-func GetUserIDFromContext(ctx context.Context) (*uint, error) {
-	userID, ok := ctx.Value(userIDContext{}).(uint)
+func (r *authMiddleware) GetUserIDFromContext(ctx context.Context) (uuid.UUID, error) {
+	userID, ok := ctx.Value(userIDContext{}).(uuid.UUID)
 
 	if !ok {
-		return nil, errors.New("failed to get user id from context")
+		return uuid.UUID{}, errors.New("failed to get user id from context")
 	}
 
-	return &userID, nil
+	return userID, nil
 }

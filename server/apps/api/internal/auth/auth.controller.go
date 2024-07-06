@@ -2,22 +2,26 @@ package auth
 
 import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *controller) Mount(r fiber.Router) {
+func (h *controller) Mount(r fiber.Router, authMiddleware middlewares.AuthMiddleware) {
 	r.Post("/register", h.Register)
 	r.Post("/login", h.Login)
+	r.Get("/me", authMiddleware.Auth, h.GetProfile)
 }
 
 type controller struct {
-	usecase *usecase
+	usecase        *usecase
+	authMiddleware middlewares.AuthMiddleware
 }
 
-func NewController(authUsecase *usecase) *controller {
+func NewController(authUsecase *usecase, authMiddleware middlewares.AuthMiddleware) *controller {
 	return &controller{
-		usecase: authUsecase,
+		usecase:        authUsecase,
+		authMiddleware: authMiddleware,
 	}
 }
 
@@ -28,8 +32,8 @@ type registerRequest struct {
 }
 
 type registerResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 	Exp          int64  `json:"exp"`
 }
 
@@ -84,8 +88,8 @@ type loginRequest struct {
 }
 
 type loginResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 	Exp          int64  `json:"exp"`
 }
 
@@ -121,6 +125,34 @@ func (h *controller) Login(ctx *fiber.Ctx) error {
 			AccessToken:  res.AccessToken,
 			RefreshToken: res.RefreshToken,
 			Exp:          res.Exp,
+		},
+	})
+}
+
+type getProfileReponse struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+
+func (h *controller) GetProfile(ctx *fiber.Ctx) error {
+	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
+			Error: "Unauthorized",
+		})
+	}
+
+	user, err := h.usecase.GetProfile(ctx.UserContext(), userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get user")
+	}
+
+	return ctx.JSON(dto.HttpResponse{
+		Result: getProfileReponse{
+			ID:    user.ID.String(),
+			Email: user.Email,
+			Name:  user.Name,
 		},
 	})
 }
