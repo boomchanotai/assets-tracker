@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
+	"github.com/boomchanotai/assets-tracker/server/pkg/postgres"
 	"github.com/spf13/viper"
 )
 
@@ -10,9 +11,10 @@ const (
 )
 
 type AppConfig struct {
-	Name   string        `mapstructure:"name"`
-	Port   int           `mapstructure:"port"`
-	Logger logger.Config `mapstructure:"logger"`
+	Name     string          `mapstructure:"name"`
+	Port     int             `mapstructure:"port"`
+	Logger   logger.Config   `mapstructure:"logger"`
+	Postgres postgres.Config `mapstructure:"postgres"`
 }
 
 func Load() *AppConfig {

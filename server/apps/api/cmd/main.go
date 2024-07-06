@@ -11,9 +11,12 @@ import (
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -25,6 +28,16 @@ func main() {
 	if err := logger.Init(conf.Logger); err != nil {
 		logger.PanicContext(ctx, "failed to initialize logger", slog.Any("error", err))
 	}
+
+	fmt.Println(conf.Postgres.String())
+	db, err := gorm.Open(postgres.Open(conf.Postgres.String()), &gorm.Config{})
+	if err != nil {
+		logger.PanicContext(ctx, "failed to connect to database", slog.Any("error", err))
+	}
+
+	userRepo := user.NewRepository(db)
+	userUsecase := user.NewUsecase(userRepo)
+	userController := user.NewController(userUsecase)
 
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
@@ -40,6 +53,9 @@ func main() {
 	})
 
 	app.Use(cors.New())
+
+	userGroup := app.Group("/v1/user")
+	userController.Mount(userGroup)
 
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%d", conf.Port)); err != nil {

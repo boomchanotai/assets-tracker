@@ -1,3 +1,14 @@
+name: "assets-tracker"
+port: 8000
+
 logger:
   debug: true
   output: "text"
+
+postgres:
+  host: "localhost"
+  user: "postgres"
+  password: "password"
+  dbname: "postgres"
+  port: 5432
+  sslmode: "disable"
