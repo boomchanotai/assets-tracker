@@ -10,6 +10,8 @@ const (
 )
 
 type AppConfig struct {
+	Name   string        `mapstructure:"name"`
+	Port   int           `mapstructure:"port"`
 	Logger logger.Config `mapstructure:"logger"`
 }
 
