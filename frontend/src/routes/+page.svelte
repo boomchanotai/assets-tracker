@@ -2,7 +2,7 @@
 	import Container from '@/components/Container.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
+	import { toast } from 'svelte-sonner';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 </script>
@@ -29,7 +29,7 @@
 				</form>
 			</Card.Content>
 			<Card.Footer class="flex justify-center">
-				<Button>Sign in</Button>
+				<Button on:click={() => toast('Hello world')}>Sign in</Button>
 			</Card.Footer>
 		</Card.Root>
 	</Container>

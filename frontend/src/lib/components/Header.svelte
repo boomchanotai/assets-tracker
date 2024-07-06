@@ -64,8 +64,10 @@
 	}
 </script>
 
-<Container class="py-4 space-y-4">
-	<h1 class="text-xl font-semibold">Cloud Pocket</h1>
+<Container class="py-4 space-y-4"
+	><div>
+		<h1 class="text-xl font-semibold">Cloud Pocket</h1>
+	</div>
 	<div class="flex items-center gap-4">
 		<div>
 			<Select.Root bind:selected={selectedAccount}>
