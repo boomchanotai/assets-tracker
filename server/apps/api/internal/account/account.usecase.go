@@ -137,7 +137,7 @@ func (u *usecase) Deposit(ctx context.Context, userID uuid.UUID, accountID uuid.
 
 	// Create Transaction
 	if _, err = u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
-		AccountID:    accountID,
+		AccountID:    account.ID,
 		FromPocketID: nil,
 		ToPocketID:   &cashbox.ID,
 		Type:         entity.TxTypeDeposit,

@@ -33,6 +33,7 @@ func (r *repository) GetTransactionByAccountID(ctx context.Context, userID uuid.
 	for _, t := range transactions {
 		result = append(result, entity.Transaction{
 			ID:           t.ID,
+			AccountID:    t.AccountID,
 			FromPocketID: t.FromPocketID,
 			ToPocketID:   t.ToPocketID,
 			Type:         entity.TxType(t.Type),
@@ -61,6 +62,7 @@ func (r *repository) CreateTransaction(ctx context.Context, input entity.Transac
 
 	return &entity.Transaction{
 		ID:           t.ID,
+		AccountID:    t.AccountID,
 		FromPocketID: t.FromPocketID,
 		ToPocketID:   t.ToPocketID,
 		Type:         entity.TxType(t.Type),
