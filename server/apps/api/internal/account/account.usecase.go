@@ -4,17 +4,20 @@ import (
 	"context"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 )
 
 type usecase struct {
-	accountRepo Repository
+	accountRepo interfaces.AccountRepository
+	pocketRepo  interfaces.PocketRepository
 }
 
-func NewUsecase(accountRepo Repository) *usecase {
+func NewUsecase(accountRepo interfaces.AccountRepository, pocketRepo interfaces.PocketRepository) *usecase {
 	return &usecase{
 		accountRepo: accountRepo,
+		pocketRepo:  pocketRepo,
 	}
 }
 
@@ -40,6 +43,15 @@ func (u *usecase) CreateAccount(ctx context.Context, input entity.AccountInput) 
 	account, err := u.accountRepo.CreateAccount(ctx, input)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create account")
+	}
+
+	_, err = u.pocketRepo.CreatePocket(ctx, entity.PocketInput{
+		UserID:    input.UserID,
+		AccountID: account.ID,
+		Name:      "Cashbox",
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create cashbox pocket")
 	}
 
 	return account, nil

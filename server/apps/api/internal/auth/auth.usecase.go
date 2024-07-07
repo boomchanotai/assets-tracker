@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/jwt"
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -17,11 +17,11 @@ var (
 )
 
 type usecase struct {
-	userRepo  user.Repository
+	userRepo  interfaces.UserRepository
 	jwtConfig *jwt.Config
 }
 
-func NewUsecase(userRepo user.Repository, jwtConfig *jwt.Config) *usecase {
+func NewUsecase(userRepo interfaces.UserRepository, jwtConfig *jwt.Config) *usecase {
 	return &usecase{
 		userRepo:  userRepo,
 		jwtConfig: jwtConfig,

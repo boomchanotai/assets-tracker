@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/model"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
@@ -12,19 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository interface {
-	GetUserAccounts(ctx context.Context, userID uuid.UUID) ([]entity.Account, error)
-	GetUserAccount(ctx context.Context, userID uuid.UUID, id uuid.UUID) (*entity.Account, error)
-	CreateAccount(ctx context.Context, input entity.AccountInput) (*entity.Account, error)
-	UpdateAccount(ctx context.Context, id uuid.UUID, input entity.AccountInput) (*entity.Account, error)
-	DeleteAccount(ctx context.Context, id uuid.UUID) error
-}
-
 type repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) Repository {
+func NewRepository(db *gorm.DB) interfaces.AccountRepository {
 	db.AutoMigrate(&model.Account{})
 
 	return &repository{

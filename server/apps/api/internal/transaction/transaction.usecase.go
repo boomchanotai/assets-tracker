@@ -3,18 +3,18 @@ package transaction
 import (
 	"context"
 
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/account"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 )
 
 type usecase struct {
-	transactionRepo Repository
-	accountRepo     account.Repository
+	transactionRepo interfaces.TransactionRepository
+	accountRepo     interfaces.AccountRepository
 }
 
-func NewUsecase(transactionRepo Repository, accountRepo account.Repository) *usecase {
+func NewUsecase(transactionRepo interfaces.TransactionRepository, accountRepo interfaces.AccountRepository) *usecase {
 	return &usecase{
 		transactionRepo: transactionRepo,
 		accountRepo:     accountRepo,

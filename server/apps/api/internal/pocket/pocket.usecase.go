@@ -3,18 +3,18 @@ package pocket
 import (
 	"context"
 
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/account"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
 type usecase struct {
-	pocketRepo  Repository
-	accountRepo account.Repository
+	pocketRepo  interfaces.PocketRepository
+	accountRepo interfaces.AccountRepository
 }
 
-func NewUsecase(pocketRepo Repository, accountRepo account.Repository) *usecase {
+func NewUsecase(pocketRepo interfaces.PocketRepository, accountRepo interfaces.AccountRepository) *usecase {
 	return &usecase{
 		pocketRepo:  pocketRepo,
 		accountRepo: accountRepo,

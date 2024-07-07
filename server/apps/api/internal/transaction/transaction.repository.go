@@ -4,22 +4,18 @@ import (
 	"context"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/model"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type Repository interface {
-	GetTransactionByAccountID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) ([]entity.Transaction, error)
-	CreateTransaction(ctx context.Context, transaction entity.TransactionInput) (*entity.Transaction, error)
-}
-
 type repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) Repository {
+func NewRepository(db *gorm.DB) interfaces.TransactionRepository {
 	db.AutoMigrate(&model.Transaction{})
 
 	return &repository{

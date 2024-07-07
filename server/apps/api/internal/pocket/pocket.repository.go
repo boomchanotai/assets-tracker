@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/model"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
@@ -12,19 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository interface {
-	GetPocketByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Pocket, error)
-	GetPocketByID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) (*entity.Pocket, error)
-	CreatePocket(ctx context.Context, input entity.PocketInput) (*entity.Pocket, error)
-	UpdatePocket(ctx context.Context, id uuid.UUID, input entity.PocketInput) (*entity.Pocket, error)
-	DeletePocket(ctx context.Context, pocketID uuid.UUID) error
-}
-
 type repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) Repository {
+func NewRepository(db *gorm.DB) interfaces.PocketRepository {
 	db.AutoMigrate(&model.Pocket{})
 
 	return &repository{

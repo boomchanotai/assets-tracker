@@ -53,23 +53,24 @@ func main() {
 	}()
 
 	userRepo := user.NewRepository(db, redisConn, &conf.JWT)
-	userUsecase := user.NewUsecase(userRepo)
-	userController := user.NewController(userUsecase)
+	accountRepo := account.NewRepository(db)
+	pocketRepo := pocket.NewRepository(db)
+	transactionRepo := transaction.NewRepository(db)
 
 	authMiddleware := authentication.NewAuthMiddleware(userRepo, &conf.JWT)
+
+	userUsecase := user.NewUsecase(userRepo)
+	userController := user.NewController(userUsecase)
 
 	authUsecase := auth.NewUsecase(userRepo, &conf.JWT)
 	authController := auth.NewController(authUsecase, authMiddleware)
 
-	accountRepo := account.NewRepository(db)
-	accountUsecase := account.NewUsecase(accountRepo)
+	accountUsecase := account.NewUsecase(accountRepo, pocketRepo)
 	accountController := account.NewController(accountUsecase, authMiddleware)
 
-	pocketRepo := pocket.NewRepository(db)
 	pocketUsecase := pocket.NewUsecase(pocketRepo, accountRepo)
 	pocketController := pocket.NewController(pocketUsecase, authMiddleware)
 
-	transactionRepo := transaction.NewRepository(db)
 	transactionUsecase := transaction.NewUsecase(transactionRepo, accountRepo)
 	transactionController := transaction.NewController(transactionUsecase, authMiddleware)
 

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/jwt"
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -21,11 +21,11 @@ type AuthMiddleware interface {
 }
 
 type authMiddleware struct {
-	userRepo user.Repository
+	userRepo interfaces.UserRepository
 	config   *jwt.Config
 }
 
-func NewAuthMiddleware(userRepo user.Repository, config *jwt.Config) AuthMiddleware {
+func NewAuthMiddleware(userRepo interfaces.UserRepository, config *jwt.Config) AuthMiddleware {
 	return &authMiddleware{
 		userRepo: userRepo,
 		config:   config,
