@@ -35,12 +35,16 @@ func NewAuthMiddleware(userRepo user.Repository, config *jwt.Config) AuthMiddlew
 func (r *authMiddleware) Auth(ctx *fiber.Ctx) error {
 	tokenByte := ctx.GetReqHeaders()["Authorization"]
 	if len(tokenByte) == 0 {
-		return errors.Wrap(ErrInvalidToken, "invalid token")
+		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.HttpResponse{
+			Result: "Unauthorized",
+		})
 	}
 
 	bearerToken := tokenByte[0][7:]
 	if len(bearerToken) == 0 {
-		return errors.Wrap(ErrInvalidToken, "invalid token")
+		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.HttpResponse{
+			Result: "Unauthorized",
+		})
 	}
 
 	claims, err := r.validateToken(ctx.UserContext(), bearerToken)

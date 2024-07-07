@@ -59,7 +59,7 @@ export const financialAccountType = [
 	},
 	{
 		label: 'พอร์ตการลงทุน',
-		value: 'investment portfolio'
+		value: 'stock'
 	}
 ];
 

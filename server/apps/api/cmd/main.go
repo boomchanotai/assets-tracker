@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/account"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/auth"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
@@ -58,6 +59,10 @@ func main() {
 	authUsecase := auth.NewUsecase(userRepo, &conf.JWT)
 	authController := auth.NewController(authUsecase, authMiddleware)
 
+	accountRepo := account.NewRepository(db)
+	accountUsecase := account.NewUsecase(accountRepo)
+	accountController := account.NewController(accountUsecase)
+
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
 		CaseSensitive: true,
@@ -80,6 +85,10 @@ func main() {
 
 	userGroup := app.Group("/v1/user")
 	userController.Mount(userGroup)
+
+	accountGroup := app.Group("/v1/account")
+	accountGroup.Use(authMiddleware.Auth)
+	accountController.Mount(accountGroup)
 
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%d", conf.Port)); err != nil {

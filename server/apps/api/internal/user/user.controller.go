@@ -5,11 +5,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *controller) Mount(r fiber.Router) {
-	r.Get("/", h.GetUsers)
-	r.Get("/:id", h.GetUser)
-}
-
 type controller struct {
 	usecase *usecase
 }
@@ -18,6 +13,11 @@ func NewController(userUsecase *usecase) *controller {
 	return &controller{
 		usecase: userUsecase,
 	}
+}
+
+func (h *controller) Mount(r fiber.Router) {
+	r.Get("/", h.GetUsers)
+	r.Get("/:id", h.GetUser)
 }
 
 func (h *controller) GetUsers(ctx *fiber.Ctx) error {
