@@ -12,10 +12,11 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/auth"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/boomchanotai/assets-tracker/server/pkg/redis"
+	"github.com/boomchanotai/assets-tracker/server/pkg/requestlogger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -52,7 +53,7 @@ func main() {
 	userUsecase := user.NewUsecase(userRepo)
 	userController := user.NewController(userUsecase)
 
-	authMiddleware := middlewares.NewAuthMiddleware(userRepo, &conf.JWT)
+	authMiddleware := authentication.NewAuthMiddleware(userRepo, &conf.JWT)
 
 	authUsecase := auth.NewUsecase(userRepo, &conf.JWT)
 	authController := auth.NewController(authUsecase, authMiddleware)
@@ -72,7 +73,7 @@ func main() {
 
 	app.Use(cors.New()).
 		Use(requestid.New()).
-		Use(middlewares.RequestLogger())
+		Use(requestlogger.New())
 
 	authGroup := app.Group("/v1/auth")
 	authController.Mount(authGroup, authMiddleware)

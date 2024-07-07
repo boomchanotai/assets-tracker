@@ -17,10 +17,16 @@ type Config struct {
 	AutoLogout         int64  `mapstructure:"auto_logout"`
 }
 
+type JWTentity struct {
+	ID  uuid.UUID `json:"id"` // User ID
+	UID uuid.UUID `json:"uid"`
+	jwt.MapClaims
+}
+
 func CreateToken(userID uuid.UUID, expire int64, secret string) (token string, uid uuid.UUID, exp int64, err error) {
 	exp = time.Now().Add(time.Second * time.Duration(expire)).Unix()
 	uid = uuid.New()
-	claims := &entity.JWTentity{
+	claims := &JWTentity{
 		ID:  userID,
 		UID: uid,
 		MapClaims: jwt.MapClaims{
@@ -63,7 +69,7 @@ func GenerateTokenPair(user *entity.User, accessTokenSecret, refreshTokenSecret 
 	return cachedToken, accessToken, refreshToken, exp, nil
 }
 
-func ValidateToken(cachedToken *entity.CachedTokens, token *entity.JWTentity, isRefreshToken bool) error {
+func ValidateToken(cachedToken *entity.CachedTokens, token *JWTentity, isRefreshToken bool) error {
 	var tokenUID uuid.UUID
 	if isRefreshToken {
 		tokenUID = cachedToken.RefreshUID
@@ -78,8 +84,8 @@ func ValidateToken(cachedToken *entity.CachedTokens, token *entity.JWTentity, is
 	return nil
 }
 
-func ParseToken(tokenString string, secret string) (*entity.JWTentity, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &entity.JWTentity{}, func(token *jwt.Token) (interface{}, error) {
+func ParseToken(tokenString string, secret string) (*JWTentity, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &JWTentity{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid token")
 		}
@@ -89,7 +95,7 @@ func ParseToken(tokenString string, secret string) (*entity.JWTentity, error) {
 		return nil, errors.Wrap(err, "can't parse token")
 	}
 
-	claims, ok := token.Claims.(*entity.JWTentity)
+	claims, ok := token.Claims.(*JWTentity)
 	if !ok {
 		return nil, errors.New("can't parse token")
 	}

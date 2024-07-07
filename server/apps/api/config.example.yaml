@@ -22,4 +22,6 @@ redis:
 jwt:
   access_token_secret: "access_token_secret"
   refresh_token_secret: "refresh_token_secret"
-  auto_logout: 2592000 # 30 days
+  access_token_expire: 604800 # 1 day
+  refresh_token_expire: 2592000 # 30 days
+  auto_logout: 2592000 # 30 days 2592000

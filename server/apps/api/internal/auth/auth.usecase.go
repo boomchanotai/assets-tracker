@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/jwt"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
-	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"

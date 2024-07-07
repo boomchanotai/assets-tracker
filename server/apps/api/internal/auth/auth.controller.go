@@ -2,12 +2,12 @@ package auth
 
 import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *controller) Mount(r fiber.Router, authMiddleware middlewares.AuthMiddleware) {
+func (h *controller) Mount(r fiber.Router, authMiddleware authentication.AuthMiddleware) {
 	r.Post("/register", h.Register)
 	r.Post("/login", h.Login)
 	r.Get("/me", authMiddleware.Auth, h.GetProfile)
@@ -17,10 +17,10 @@ func (h *controller) Mount(r fiber.Router, authMiddleware middlewares.AuthMiddle
 
 type controller struct {
 	usecase        *usecase
-	authMiddleware middlewares.AuthMiddleware
+	authMiddleware authentication.AuthMiddleware
 }
 
-func NewController(authUsecase *usecase, authMiddleware middlewares.AuthMiddleware) *controller {
+func NewController(authUsecase *usecase, authMiddleware authentication.AuthMiddleware) *controller {
 	return &controller{
 		usecase:        authUsecase,
 		authMiddleware: authMiddleware,
@@ -169,7 +169,7 @@ func (h *controller) RefreshToken(ctx *fiber.Ctx) error {
 	// Refresh Token
 	tokenByte := ctx.GetReqHeaders()["Authorization"]
 	if len(tokenByte) == 0 {
-		return errors.Wrap(middlewares.ErrInvalidToken, "invalid token")
+		return errors.Wrap(authentication.ErrInvalidToken, "invalid token")
 	}
 
 	bearerToken := tokenByte[0][7:]

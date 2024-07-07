@@ -3,7 +3,6 @@ package entity
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -35,10 +34,4 @@ type Token struct {
 type CachedTokens struct {
 	AccessUID  uuid.UUID `json:"access"`
 	RefreshUID uuid.UUID `json:"refresh"`
-}
-
-type JWTentity struct {
-	ID  uuid.UUID `json:"id"` // User ID
-	UID uuid.UUID `json:"uid"`
-	jwt.MapClaims
 }

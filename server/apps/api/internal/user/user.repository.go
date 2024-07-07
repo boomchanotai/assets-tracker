@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
-	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/jwt"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"

@@ -1,7 +1,7 @@
 package config
 
 import (
-	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/jwt"
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/boomchanotai/assets-tracker/server/pkg/postgres"
 	"github.com/boomchanotai/assets-tracker/server/pkg/redis"

@@ -1,12 +1,11 @@
-package middlewares
+package authentication
 
 import (
 	"context"
 
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
-	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/jwt"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
-	jwt "github.com/boomchanotai/assets-tracker/server/apps/api/internal/utils"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -57,7 +56,7 @@ func (r *authMiddleware) Auth(ctx *fiber.Ctx) error {
 	return ctx.Next()
 }
 
-func (r *authMiddleware) validateToken(ctx context.Context, bearerToken string) (*entity.JWTentity, error) {
+func (r *authMiddleware) validateToken(ctx context.Context, bearerToken string) (*jwt.JWTentity, error) {
 	parsedToken, err := jwt.ParseToken(bearerToken, r.config.AccessTokenSecret)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse refresh token")
