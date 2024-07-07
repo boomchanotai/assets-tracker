@@ -43,7 +43,7 @@ func checkPassword(hashPassword, password string) bool {
 }
 
 func (u *usecase) generateAuthToken(ctx context.Context, user entity.User) (accessToken, refreshToken string, exp int64, err error) {
-	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(&user, u.jwtConfig.AccessTokenSecret, u.jwtConfig.RefreshTokenSecret)
+	cachedToken, accessToken, refreshToken, exp, err := jwt.GenerateTokenPair(&user, u.jwtConfig.AccessTokenSecret, u.jwtConfig.RefreshTokenSecret, u.jwtConfig.AccessTokenExpire, u.jwtConfig.RefreshTokenExpire)
 	if err != nil {
 		return "", "", 0, errors.Wrap(err, "failed to generate token pair")
 	}

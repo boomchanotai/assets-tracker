@@ -12,17 +12,19 @@ import (
 type Config struct {
 	AccessTokenSecret  string `mapstructure:"access_token_secret"`
 	RefreshTokenSecret string `mapstructure:"refresh_token_secret"`
+	AccessTokenExpire  int64  `mapstructure:"access_token_expire"`
+	RefreshTokenExpire int64  `mapstructure:"refresh_token_expire"`
 	AutoLogout         int64  `mapstructure:"auto_logout"`
 }
 
-func CreateToken(userID uuid.UUID, expireMinutes int, secret string) (token string, uid uuid.UUID, exp int64, err error) {
-	exp = time.Now().Add(time.Minute * time.Duration(expireMinutes)).Unix()
+func CreateToken(userID uuid.UUID, expire int64, secret string) (token string, uid uuid.UUID, exp int64, err error) {
+	exp = time.Now().Add(time.Second * time.Duration(expire)).Unix()
 	uid = uuid.New()
 	claims := &entity.JWTentity{
 		ID:  userID,
 		UID: uid,
 		MapClaims: jwt.MapClaims{
-			"ExpiresAt": exp,
+			"exp": exp,
 		},
 	}
 
@@ -35,7 +37,7 @@ func CreateToken(userID uuid.UUID, expireMinutes int, secret string) (token stri
 	return token, uid, exp, nil
 }
 
-func GenerateTokenPair(user *entity.User, accessTokenSecret string, refreshTokenSecret string) (
+func GenerateTokenPair(user *entity.User, accessTokenSecret, refreshTokenSecret string, accessTokenExpire, refreshTokenExpire int64) (
 	cahcedToken *entity.CachedTokens,
 	accessToken string,
 	refreshToken string,
@@ -43,14 +45,12 @@ func GenerateTokenPair(user *entity.User, accessTokenSecret string, refreshToken
 	err error,
 ) {
 	var accessUID, refreshUID uuid.UUID
-	ExpireAccessMinutes := 15
-	ExpireRefreshMinutes := 60 * 24 * 7
-	accessToken, accessUID, exp, err = CreateToken(user.ID, ExpireAccessMinutes, accessTokenSecret)
+	accessToken, accessUID, exp, err = CreateToken(user.ID, accessTokenExpire, accessTokenSecret)
 	if err != nil {
 		return nil, "", "", 0, errors.Wrap(err, "can't create access token")
 	}
 
-	refreshToken, refreshUID, _, err = CreateToken(user.ID, ExpireRefreshMinutes, refreshTokenSecret)
+	refreshToken, refreshUID, _, err = CreateToken(user.ID, refreshTokenExpire, refreshTokenSecret)
 	if err != nil {
 		return nil, "", "", 0, errors.Wrap(err, "can't create refresh token")
 	}
