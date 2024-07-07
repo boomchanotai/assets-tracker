@@ -136,8 +136,16 @@ func getTokenKey(userID uuid.UUID) string {
 	return AuthTokenKey + ":" + userID.String()
 }
 
+type tokenUID struct {
+	AccessUID  uuid.UUID `msgpack:"access_uid"`
+	RefreshUID uuid.UUID `msgpack:"refresh_uid"`
+}
+
 func (r *repository) SetUserAuthToken(ctx context.Context, userID uuid.UUID, token entity.CachedTokens) error {
-	cachedToken, err := msgpack.Marshal(token)
+	cachedToken, err := msgpack.Marshal(tokenUID{
+		AccessUID:  token.AccessUID,
+		RefreshUID: token.RefreshUID,
+	})
 	if err != nil {
 		return errors.Wrap(err, "can't marshal cached token")
 	}
@@ -156,13 +164,16 @@ func (r *repository) GetUserAuthToken(ctx context.Context, userID uuid.UUID) (*e
 		return nil, errors.Wrap(err, "can't get token")
 	}
 
-	cachedToken := &entity.CachedTokens{}
+	cachedToken := &tokenUID{}
 	err = msgpack.Unmarshal(redisToken, cachedToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't unmarshal cached token")
 	}
 
-	return cachedToken, nil
+	return &entity.CachedTokens{
+		AccessUID:  cachedToken.AccessUID,
+		RefreshUID: cachedToken.RefreshUID,
+	}, nil
 }
 
 func (r *repository) DeleteUserAuthToken(ctx context.Context, userID uuid.UUID) error {

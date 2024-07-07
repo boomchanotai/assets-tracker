@@ -32,6 +32,6 @@ type Token struct {
 }
 
 type CachedTokens struct {
-	AccessUID  uuid.UUID `json:"access"`
-	RefreshUID uuid.UUID `json:"refresh"`
+	AccessUID  uuid.UUID
+	RefreshUID uuid.UUID
 }
