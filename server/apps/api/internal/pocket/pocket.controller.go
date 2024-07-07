@@ -25,7 +25,7 @@ func NewController(pocketUsecase *usecase, authMiddleware authentication.AuthMid
 }
 
 func (h *controller) Mount(r fiber.Router) {
-	r.Get("/", h.GetPockets)
+	r.Get("/account/:id", h.GetPocketsByAccountID)
 	r.Get("/:id", h.GetPocket)
 	r.Post("/", h.CreatePocket)
 	r.Put("/:id", h.UpdatePocket)
@@ -41,7 +41,7 @@ type pocketResponse struct {
 	UpdatedAt time.Time       `json:"updatedAt"`
 }
 
-func (h *controller) GetPockets(ctx *fiber.Ctx) error {
+func (h *controller) GetPocketsByAccountID(ctx *fiber.Ctx) error {
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -49,7 +49,14 @@ func (h *controller) GetPockets(ctx *fiber.Ctx) error {
 		})
 	}
 
-	pockets, err := h.usecase.GetPockets(ctx.UserContext(), userID)
+	accountID, err := uuid.Parse(ctx.Params("id"))
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	pockets, err := h.usecase.GetPocketsByAccountID(ctx.UserContext(), userID, accountID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get pockets")
 	}

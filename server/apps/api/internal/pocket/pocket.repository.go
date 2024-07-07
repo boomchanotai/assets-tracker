@@ -25,10 +25,9 @@ func NewRepository(db *gorm.DB) interfaces.PocketRepository {
 	}
 }
 
-func (r *repository) GetPocketByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Pocket, error) {
+func (r *repository) GetPocketsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entity.Pocket, error) {
 	var pockets []*model.Pocket
-	// where userID == pocket.Account.UserID
-	if err := r.db.Where("account_id IN (?)", r.db.Model(&model.Account{}).Select("id").Where("user_id = ?", userID)).Find(&pockets).Error; err != nil {
+	if err := r.db.Where("account_id = ?", accountID).Find(&pockets).Error; err != nil {
 		return nil, errors.Wrap(err, "failed to get pockets")
 	}
 

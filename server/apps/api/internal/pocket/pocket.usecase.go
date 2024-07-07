@@ -21,15 +21,6 @@ func NewUsecase(pocketRepo interfaces.PocketRepository, accountRepo interfaces.A
 	}
 }
 
-func (u *usecase) GetPockets(ctx context.Context, userID uuid.UUID) ([]entity.Pocket, error) {
-	pockets, err := u.pocketRepo.GetPocketByUserID(ctx, userID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get pockets")
-	}
-
-	return pockets, nil
-}
-
 func (u *usecase) GetPocket(ctx context.Context, userID, pocketID uuid.UUID) (*entity.Pocket, error) {
 	pocket, err := u.pocketRepo.GetPocketByID(ctx, userID, pocketID)
 	if err != nil {
@@ -37,6 +28,20 @@ func (u *usecase) GetPocket(ctx context.Context, userID, pocketID uuid.UUID) (*e
 	}
 
 	return pocket, nil
+}
+
+func (u *usecase) GetPocketsByAccountID(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]entity.Pocket, error) {
+	// Check account ownership
+	if _, err := u.accountRepo.GetUserAccount(ctx, userID, accountID); err != nil {
+		return nil, errors.Wrap(err, "failed to get account")
+	}
+
+	pockets, err := u.pocketRepo.GetPocketsByAccountID(ctx, accountID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get pockets")
+	}
+
+	return pockets, nil
 }
 
 func (u *usecase) CreatePocket(ctx context.Context, input entity.PocketInput) (*entity.Pocket, error) {
