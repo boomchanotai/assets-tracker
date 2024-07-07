@@ -73,7 +73,9 @@ func (a Account) String() string {
 }
 
 type AccountInput struct {
-	Type AccountType
-	Name string
-	Bank string
+	UserID  uuid.UUID
+	Type    AccountType
+	Name    string
+	Bank    string
+	Balance decimal.Decimal
 }

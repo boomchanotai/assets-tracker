@@ -61,7 +61,7 @@ func main() {
 
 	accountRepo := account.NewRepository(db)
 	accountUsecase := account.NewUsecase(accountRepo)
-	accountController := account.NewController(accountUsecase)
+	accountController := account.NewController(accountUsecase, authMiddleware)
 
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
