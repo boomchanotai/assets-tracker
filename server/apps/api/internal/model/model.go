@@ -27,3 +27,23 @@ type Account struct {
 	CreatedAt time.Time          `gorm:"created_at"`
 	UpdatedAt time.Time          `gorm:"updated_at"`
 }
+
+type Pocket struct {
+	ID        uuid.UUID       `gorm:"id"`
+	AccountID uuid.UUID       `gorm:"references:Account"`
+	Name      string          `gorm:"name"`
+	Balance   decimal.Decimal `gorm:"balance"`
+	CreatedAt time.Time       `gorm:"created_at"`
+	UpdatedAt time.Time       `gorm:"updated_at"`
+}
+
+type Transaction struct {
+	ID           uuid.UUID       `gorm:"id"`
+	UserID       uuid.UUID       `gorm:"references:User"`
+	FromPocketID *uuid.UUID      `gorm:"references:Pocket"`
+	ToPocketID   *uuid.UUID      `gorm:"references:Pocket"`
+	Type         entity.TxType   `gorm:"type:text"`
+	Amount       decimal.Decimal `gorm:"amount"`
+	CreatedAt    time.Time       `gorm:"created_at"`
+	UpdatedAt    time.Time       `gorm:"updated_at"`
+}

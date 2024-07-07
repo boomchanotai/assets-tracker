@@ -101,12 +101,10 @@ func (r *repository) GetUserByEmail(ctx context.Context, email string) (*entity.
 
 func (r *repository) CreateUser(ctx context.Context, input entity.UserInput) (*entity.User, error) {
 	newUser := model.User{
-		ID:        uuid.New(),
-		Email:     input.Email,
-		Name:      input.Name,
-		Password:  input.Password,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:       uuid.New(),
+		Email:    input.Email,
+		Name:     input.Name,
+		Password: input.Password,
 	}
 
 	if err := r.db.Create(&newUser).Error; err != nil {

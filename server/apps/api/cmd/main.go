@@ -14,6 +14,8 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/config"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/pocket"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/transaction"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/user"
 	"github.com/boomchanotai/assets-tracker/server/pkg/logger"
 	"github.com/boomchanotai/assets-tracker/server/pkg/redis"
@@ -63,6 +65,13 @@ func main() {
 	accountUsecase := account.NewUsecase(accountRepo)
 	accountController := account.NewController(accountUsecase, authMiddleware)
 
+	pocketRepo := pocket.NewRepository(db)
+	pocketUsecase := pocket.NewUsecase(pocketRepo, accountRepo)
+	pocketController := pocket.NewController(pocketUsecase, authMiddleware)
+
+	transactionRepo := transaction.NewRepository(db)
+	_ = transactionRepo
+
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
 		CaseSensitive: true,
@@ -89,6 +98,10 @@ func main() {
 	accountGroup := app.Group("/v1/account")
 	accountGroup.Use(authMiddleware.Auth)
 	accountController.Mount(accountGroup)
+
+	pocketGroup := app.Group("/v1/pocket")
+	pocketGroup.Use(authMiddleware.Auth)
+	pocketController.Mount(pocketGroup)
 
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%d", conf.Port)); err != nil {

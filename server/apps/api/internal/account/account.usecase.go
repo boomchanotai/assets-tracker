@@ -46,7 +46,12 @@ func (u *usecase) CreateAccount(ctx context.Context, input entity.AccountInput) 
 }
 
 func (u *usecase) UpdateAccount(ctx context.Context, userID uuid.UUID, id uuid.UUID, input entity.AccountInput) (*entity.Account, error) {
-	account, err := u.accountRepo.UpdateAccount(ctx, userID, id, input)
+	// Check ownership
+	if _, err := u.accountRepo.GetUserAccount(ctx, userID, id); err != nil {
+		return nil, errors.Wrap(err, "failed to get account")
+	}
+
+	account, err := u.accountRepo.UpdateAccount(ctx, id, input)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update account")
 	}
@@ -55,7 +60,12 @@ func (u *usecase) UpdateAccount(ctx context.Context, userID uuid.UUID, id uuid.U
 }
 
 func (u *usecase) DeleteAccount(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
-	err := u.accountRepo.DeleteAccount(ctx, userID, id)
+	// Check ownership
+	if _, err := u.accountRepo.GetUserAccount(ctx, userID, id); err != nil {
+		return errors.Wrap(err, "failed to get account")
+	}
+
+	err := u.accountRepo.DeleteAccount(ctx, id)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete account")
 	}

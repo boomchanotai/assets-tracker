@@ -1,6 +1,8 @@
 package account
 
 import (
+	"time"
+
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
@@ -31,14 +33,14 @@ func (h *controller) Mount(r fiber.Router) {
 }
 
 type accountResponse struct {
-	ID        string          `json:"id"`
-	UserID    string          `json:"user_id"`
-	Type      string          `json:"type"`
-	Name      string          `json:"name"`
-	Bank      string          `json:"bank"`
-	Balance   decimal.Decimal `json:"balance"`
-	CreatedAt string          `json:"created_at"`
-	UpdatedAt string          `json:"updated_at"`
+	ID        uuid.UUID          `json:"id"`
+	UserID    uuid.UUID          `json:"userId"`
+	Type      entity.AccountType `json:"type"`
+	Name      string             `json:"name"`
+	Bank      string             `json:"bank"`
+	Balance   decimal.Decimal    `json:"balance"`
+	CreatedAt time.Time          `json:"createdAt"`
+	UpdatedAt time.Time          `json:"updatedAt"`
 }
 
 func (h *controller) GetAccounts(ctx *fiber.Ctx) error {
@@ -57,14 +59,14 @@ func (h *controller) GetAccounts(ctx *fiber.Ctx) error {
 	accountsResponse := make([]accountResponse, 0, len(accounts))
 	for _, account := range accounts {
 		accountsResponse = append(accountsResponse, accountResponse{
-			ID:        account.ID.String(),
-			UserID:    account.UserID.String(),
-			Type:      account.Type.String(),
+			ID:        account.ID,
+			UserID:    account.UserID,
+			Type:      account.Type,
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt.String(),
-			UpdatedAt: account.UpdatedAt.String(),
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
 		})
 	}
 
@@ -96,14 +98,14 @@ func (h *controller) GetAccount(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(dto.HttpResponse{
 		Result: accountResponse{
-			ID:        account.ID.String(),
-			UserID:    account.UserID.String(),
-			Type:      account.Type.String(),
+			ID:        account.ID,
+			UserID:    account.UserID,
+			Type:      account.Type,
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt.String(),
-			UpdatedAt: account.UpdatedAt.String(),
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
 		},
 	})
 }
@@ -147,14 +149,14 @@ func (h *controller) CreateAccount(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(dto.HttpResponse{
 		Result: accountResponse{
-			ID:        account.ID.String(),
-			UserID:    account.UserID.String(),
-			Type:      account.Type.String(),
+			ID:        account.ID,
+			UserID:    account.UserID,
+			Type:      account.Type,
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt.String(),
-			UpdatedAt: account.UpdatedAt.String(),
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
 		},
 	})
 }
@@ -202,14 +204,14 @@ func (h *controller) UpdateAccount(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(dto.HttpResponse{
 		Result: accountResponse{
-			ID:        account.ID.String(),
-			UserID:    account.UserID.String(),
-			Type:      account.Type.String(),
+			ID:        account.ID,
+			UserID:    account.UserID,
+			Type:      account.Type,
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt.String(),
-			UpdatedAt: account.UpdatedAt.String(),
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
 		},
 	})
 }

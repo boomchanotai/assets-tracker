@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"database/sql/driver"
 	"time"
 
 	"github.com/cockroachdb/errors"
@@ -25,36 +24,6 @@ const (
 
 func (at AccountType) String() string {
 	return string(at)
-}
-
-func (at AccountType) Value() (driver.Value, error) {
-	switch at {
-	case AccountTypeSaving, AccountTypeFixedDeposit, AccountTypeFCD, AccountTypeMutualFund, AccountTypeStock:
-		return string(at), nil
-	}
-	return nil, errors.Wrap(ErrInvalidAccountType, "invalid account type")
-}
-
-func (at *AccountType) Scan(value interface{}) error {
-	var accountType AccountType
-	if value == nil {
-		*at = ""
-		return nil
-	}
-
-	st, ok := value.(string)
-	if !ok {
-		return errors.Wrap(ErrInvalidAccountType, "invalid account type")
-	}
-
-	accountType = AccountType(st)
-	switch accountType {
-	case AccountTypeSaving, AccountTypeFixedDeposit, AccountTypeFCD, AccountTypeMutualFund, AccountTypeStock:
-		*at = accountType
-		return nil
-	}
-
-	return errors.Wrap(ErrInvalidAccountType, "invalid account type")
 }
 
 type Account struct {
