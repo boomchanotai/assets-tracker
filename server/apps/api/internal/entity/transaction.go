@@ -21,7 +21,7 @@ func (tt TxType) String() string {
 
 type Transaction struct {
 	ID           uuid.UUID
-	UserID       uuid.UUID
+	AccountID    uuid.UUID
 	FromPocketID *uuid.UUID // Deposit == nil, Withdraw == PocketID, Transfer == FromPocketID
 	ToPocketID   *uuid.UUID // Deposit == PocketID, Withdraw == nil, Transfer == ToPocketID
 	Type         TxType
@@ -35,7 +35,7 @@ func (t Transaction) String() string {
 }
 
 type TransactionInput struct {
-	UserID       uuid.UUID
+	AccountID    uuid.UUID
 	FromPocketID *uuid.UUID
 	ToPocketID   *uuid.UUID
 	Type         TxType

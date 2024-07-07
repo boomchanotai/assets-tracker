@@ -70,7 +70,8 @@ func main() {
 	pocketController := pocket.NewController(pocketUsecase, authMiddleware)
 
 	transactionRepo := transaction.NewRepository(db)
-	_ = transactionRepo
+	transactionUsecase := transaction.NewUsecase(transactionRepo, accountRepo)
+	transactionController := transaction.NewController(transactionUsecase, authMiddleware)
 
 	app := fiber.New(fiber.Config{
 		AppName:       conf.Name,
@@ -102,6 +103,10 @@ func main() {
 	pocketGroup := app.Group("/v1/pocket")
 	pocketGroup.Use(authMiddleware.Auth)
 	pocketController.Mount(pocketGroup)
+
+	transactionGroup := app.Group("/v1/transaction")
+	transactionGroup.Use(authMiddleware.Auth)
+	transactionController.Mount(transactionGroup)
 
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%d", conf.Port)); err != nil {

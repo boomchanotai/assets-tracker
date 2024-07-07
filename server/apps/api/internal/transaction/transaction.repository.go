@@ -11,8 +11,7 @@ import (
 )
 
 type Repository interface {
-	GetTransactionsByPocketID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) ([]entity.Transaction, error)
-	GetTransaction(ctx context.Context, userID uuid.UUID, transactionID uuid.UUID) (*entity.Transaction, error)
+	GetTransactionByAccountID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) ([]entity.Transaction, error)
 	CreateTransaction(ctx context.Context, transaction entity.TransactionInput) (*entity.Transaction, error)
 }
 
@@ -28,9 +27,9 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-func (r *repository) GetTransactionsByPocketID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) ([]entity.Transaction, error) {
+func (r *repository) GetTransactionByAccountID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) ([]entity.Transaction, error) {
 	var transactions []*model.Transaction
-	if err := r.db.Where("user_id = ? AND (from_pocket_id = ? OR to_pocket_id = ?)", userID, pocketID, pocketID).Find(&transactions).Error; err != nil {
+	if err := r.db.Where("account_id IN (?)", r.db.Model(&model.Account{}).Select("id").Where("user_id = ?", userID)).Find(&transactions).Error; err != nil {
 		return nil, errors.Wrap(err, "failed to get transactions")
 	}
 
@@ -50,31 +49,14 @@ func (r *repository) GetTransactionsByPocketID(ctx context.Context, userID uuid.
 	return result, nil
 }
 
-func (r *repository) GetTransaction(ctx context.Context, userID uuid.UUID, transactionID uuid.UUID) (*entity.Transaction, error) {
-	var t model.Transaction
-	if err := r.db.Where("user_id = ? AND id = ?", userID, transactionID).First(&t).Error; err != nil {
-		return nil, errors.Wrap(err, "failed to get transaction")
-	}
-
-	return &entity.Transaction{
-		ID:           t.ID,
-		FromPocketID: t.FromPocketID,
-		ToPocketID:   t.ToPocketID,
-		Type:         entity.TxType(t.Type),
-		Amount:       t.Amount,
-		CreatedAt:    t.CreatedAt,
-		UpdatedAt:    t.UpdatedAt,
-	}, nil
-}
-
-func (r *repository) CreateTransaction(ctx context.Context, transaction entity.TransactionInput) (*entity.Transaction, error) {
-
+func (r *repository) CreateTransaction(ctx context.Context, input entity.TransactionInput) (*entity.Transaction, error) {
 	t := model.Transaction{
-		UserID:       transaction.UserID,
-		FromPocketID: transaction.FromPocketID,
-		ToPocketID:   transaction.ToPocketID,
-		Type:         transaction.Type,
-		Amount:       transaction.Amount,
+		ID:           uuid.New(),
+		AccountID:    input.AccountID,
+		FromPocketID: input.FromPocketID,
+		ToPocketID:   input.ToPocketID,
+		Type:         input.Type,
+		Amount:       input.Amount,
 	}
 
 	if err := r.db.Create(&t).Error; err != nil {

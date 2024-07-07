@@ -39,7 +39,7 @@ type Pocket struct {
 
 type Transaction struct {
 	ID           uuid.UUID       `gorm:"id"`
-	UserID       uuid.UUID       `gorm:"references:User"`
+	AccountID    uuid.UUID       `gorm:"references:Account"`
 	FromPocketID *uuid.UUID      `gorm:"references:Pocket"`
 	ToPocketID   *uuid.UUID      `gorm:"references:Pocket"`
 	Type         entity.TxType   `gorm:"type:text"`
