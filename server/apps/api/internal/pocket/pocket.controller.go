@@ -30,6 +30,9 @@ func (h *controller) Mount(r fiber.Router) {
 	r.Post("/", h.CreatePocket)
 	r.Put("/:id", h.UpdatePocket)
 	r.Delete("/:id", h.DeletePocket)
+
+	r.Post("/:id/transfer", h.Transfer)
+	r.Post("/:id/withdraw", h.Withdraw)
 }
 
 type pocketResponse struct {
@@ -231,4 +234,21 @@ func (h *controller) DeletePocket(ctx *fiber.Ctx) error {
 	return ctx.JSON(dto.HttpResponse{
 		Result: "success",
 	})
+}
+
+type transferRequest struct {
+	ToPocketID string `json:"toPocketId"`
+	Amount     string `json:"amount"`
+}
+
+func (h *controller) Transfer(ctx *fiber.Ctx) error {
+	panic("not implemented")
+}
+
+type withdrawRequest struct {
+	Amount string `json:"amount"`
+}
+
+func (h *controller) Withdraw(ctx *fiber.Ctx) error {
+	panic("not implemented")
 }

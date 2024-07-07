@@ -30,6 +30,9 @@ func (h *controller) Mount(r fiber.Router) {
 	r.Post("/", h.CreateAccount)
 	r.Put("/:id", h.UpdateAccount)
 	r.Delete("/:id", h.DeleteAccount)
+
+	r.Post("/:id/deposit", h.Deposit)
+	r.Post("/:id/update-balance", h.Update)
 }
 
 type accountResponse struct {
@@ -192,10 +195,9 @@ func (h *controller) UpdateAccount(ctx *fiber.Ctx) error {
 	}
 
 	account, err := h.usecase.UpdateAccount(ctx.UserContext(), userID, accountId, entity.AccountInput{
-		Type:    entity.AccountType(req.Type),
-		Name:    req.Name,
-		Bank:    req.Bank,
-		Balance: decimal.NewFromFloat(req.Balance),
+		Type: entity.AccountType(req.Type),
+		Name: req.Name,
+		Bank: req.Bank,
 	})
 
 	if err != nil {
@@ -239,5 +241,109 @@ func (h *controller) DeleteAccount(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(dto.HttpResponse{
 		Result: "Account deleted",
+	})
+}
+
+type depositRequest struct {
+	Amount float64 `json:"amount"`
+}
+
+func (h *controller) Deposit(ctx *fiber.Ctx) error {
+	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
+			Error: "Unauthorized",
+		})
+	}
+
+	var req depositRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	if req.Amount <= 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	paramId := ctx.Params("id")
+	accountId, err := uuid.Parse(paramId)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	account, err := h.usecase.Deposit(ctx.UserContext(), userID, accountId, decimal.NewFromFloat(req.Amount))
+	if err != nil {
+		return errors.Wrap(err, "failed to deposit")
+	}
+
+	return ctx.JSON(dto.HttpResponse{
+		Result: accountResponse{
+			ID:        account.ID,
+			UserID:    account.UserID,
+			Type:      account.Type,
+			Name:      account.Name,
+			Bank:      account.Bank,
+			Balance:   account.Balance,
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
+		},
+	})
+}
+
+type updateRequest struct {
+	Balance float64 `json:"balance"`
+}
+
+func (h *controller) Update(ctx *fiber.Ctx) error {
+	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
+			Error: "Unauthorized",
+		})
+	}
+
+	var req updateRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	if req.Balance <= 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	paramId := ctx.Params("id")
+	accountId, err := uuid.Parse(paramId)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: "Bad Request",
+		})
+	}
+
+	account, err := h.usecase.UpdateBalance(ctx.UserContext(), userID, accountId, decimal.NewFromFloat(req.Balance))
+	if err != nil {
+		return errors.Wrap(err, "failed to update balance")
+	}
+
+	return ctx.JSON(dto.HttpResponse{
+		Result: accountResponse{
+			ID:        account.ID,
+			UserID:    account.UserID,
+			Type:      account.Type,
+			Name:      account.Name,
+			Bank:      account.Bank,
+			Balance:   account.Balance,
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
+		},
 	})
 }

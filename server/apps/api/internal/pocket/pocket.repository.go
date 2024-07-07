@@ -13,6 +13,10 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	ErrInsufficientBalance = errors.New("INSUFFICIENT_BALANCE")
+)
+
 type repository struct {
 	db *gorm.DB
 }
@@ -68,6 +72,7 @@ func (r *repository) CreatePocket(ctx context.Context, input entity.PocketInput)
 		ID:        uuid.New(),
 		AccountID: input.AccountID,
 		Name:      input.Name,
+		Type:      input.Type,
 		Balance:   decimal.NewFromInt(0), // Initial balance is 0
 	}
 
@@ -114,6 +119,85 @@ func (r *repository) UpdatePocket(ctx context.Context, id uuid.UUID, input entit
 func (r *repository) DeletePocket(ctx context.Context, pocketID uuid.UUID) error {
 	if err := r.db.Delete(&model.Pocket{}, pocketID).Error; err != nil {
 		return errors.Wrap(err, "failed to delete pocket")
+	}
+
+	return nil
+}
+
+// Deposit can be done only Cashbox pocket
+func (r *repository) Deposit(ctx context.Context, pocketID uuid.UUID, amount decimal.Decimal) error {
+	var pocket model.Pocket
+	if err := r.db.First(&pocket, pocketID).Error; err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	if pocket.Type != entity.PocketTypeCashBox {
+		return errors.Wrap(errors.New("INVALID_POCKET"), "failed to deposit")
+	}
+
+	// TODO: Lock db transaction
+	pocket.Balance = pocket.Balance.Add(amount)
+	pocket.UpdatedAt = time.Now()
+
+	if err := r.db.Save(&pocket).Error; err != nil {
+		return errors.Wrap(err, "failed to deposit")
+	}
+
+	return nil
+}
+
+func (r *repository) Transfer(ctx context.Context, fromPocketID, toPocketID uuid.UUID, amount decimal.Decimal) error {
+	var fromPocket model.Pocket
+	if err := r.db.First(&fromPocket, fromPocketID).Error; err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	var toPocket model.Pocket
+	if err := r.db.First(&toPocket, toPocketID).Error; err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	if fromPocket.Balance.LessThan(amount) {
+		return errors.Wrap(ErrInsufficientBalance, "failed to transfer")
+	}
+
+	fromPocket.Balance = fromPocket.Balance.Sub(amount)
+	fromPocket.UpdatedAt = time.Now()
+
+	toPocket.Balance = toPocket.Balance.Add(amount)
+	toPocket.UpdatedAt = time.Now()
+
+	tx := r.db.Begin()
+	if err := tx.Save(&fromPocket).Error; err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, "failed to transfer")
+	}
+
+	if err := tx.Save(&toPocket).Error; err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, "failed to transfer")
+	}
+
+	tx.Commit()
+
+	return nil
+}
+
+func (r *repository) Withdraw(ctx context.Context, pocketID uuid.UUID, amount decimal.Decimal) error {
+	var pocket model.Pocket
+	if err := r.db.First(&pocket, pocketID).Error; err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	if pocket.Balance.LessThan(amount) {
+		return errors.Wrap(ErrInsufficientBalance, "failed to withdraw")
+	}
+
+	pocket.Balance = pocket.Balance.Sub(amount)
+	pocket.UpdatedAt = time.Now()
+
+	if err := r.db.Save(&pocket).Error; err != nil {
+		return errors.Wrap(err, "failed to withdraw")
 	}
 
 	return nil

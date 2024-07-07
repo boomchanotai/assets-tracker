@@ -13,6 +13,10 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	ErrNewBalanceLessThanCurrentBalance = errors.New("NEW_BALANCE_LESS_THAN_CURRENT_BALANCE")
+)
+
 type repository struct {
 	db *gorm.DB
 }
@@ -110,10 +114,6 @@ func (r *repository) UpdateAccount(ctx context.Context, id uuid.UUID, input enti
 		a.Bank = input.Bank
 	}
 
-	if input.Balance.IsPositive() {
-		a.Balance = input.Balance
-	}
-
 	a.UpdatedAt = time.Now()
 
 	if err := r.db.Save(&a).Error; err != nil {
@@ -137,4 +137,62 @@ func (r *repository) DeleteAccount(ctx context.Context, id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (r *repository) Deposit(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Account, error) {
+	var a model.Account
+	if err := r.db.First(&a, id).Error; err != nil {
+		return nil, errors.Wrap(err, "failed to get account")
+	}
+
+	// TODO: Lock db transaction
+	a.Balance = a.Balance.Add(amount)
+	a.UpdatedAt = time.Now()
+
+	if err := r.db.Save(&a).Error; err != nil {
+		return nil, errors.Wrap(err, "failed to update account")
+	}
+
+	return &entity.Account{
+		ID:        a.ID,
+		UserID:    a.UserID,
+		Type:      a.Type,
+		Name:      a.Name,
+		Bank:      a.Bank,
+		Balance:   a.Balance,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+	}, nil
+}
+
+func (r *repository) UpdateBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (account *entity.Account, differenceBalance decimal.Decimal, err error) {
+	var a model.Account
+	if err := r.db.First(&a, id).Error; err != nil {
+		return nil, decimal.Decimal{}, errors.Wrap(err, "failed to get account")
+	}
+
+	// TODO: Lock db transaction
+	if amount.LessThan(a.Balance) {
+		return nil, decimal.Decimal{}, errors.Wrap(ErrNewBalanceLessThanCurrentBalance, "new balance less than current balance")
+	}
+
+	differenceBalance = amount.Sub(a.Balance)
+
+	a.Balance = amount
+	a.UpdatedAt = time.Now()
+
+	if err := r.db.Save(&a).Error; err != nil {
+		return nil, decimal.Decimal{}, errors.Wrap(err, "failed to update account")
+	}
+
+	return &entity.Account{
+		ID:        a.ID,
+		UserID:    a.UserID,
+		Type:      a.Type,
+		Name:      a.Name,
+		Bank:      a.Bank,
+		Balance:   a.Balance,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+	}, differenceBalance, nil
 }
