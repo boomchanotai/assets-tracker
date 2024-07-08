@@ -68,7 +68,7 @@ func main() {
 	accountUsecase := account.NewUsecase(accountRepo, pocketRepo, transactionRepo)
 	accountController := account.NewController(accountUsecase, authMiddleware)
 
-	pocketUsecase := pocket.NewUsecase(pocketRepo, accountRepo)
+	pocketUsecase := pocket.NewUsecase(pocketRepo, accountRepo, transactionRepo)
 	pocketController := pocket.NewController(pocketUsecase, authMiddleware)
 
 	transactionUsecase := transaction.NewUsecase(transactionRepo, accountRepo)

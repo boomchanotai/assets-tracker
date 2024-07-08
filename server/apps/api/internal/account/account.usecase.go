@@ -111,78 +111,77 @@ func (u *usecase) getCashboxPocket(ctx context.Context, accountID uuid.UUID) (*e
 	return &cashbox, nil
 }
 
-func (u *usecase) Deposit(ctx context.Context, userID uuid.UUID, accountID uuid.UUID, amount decimal.Decimal) (*entity.Account, error) {
+func (u *usecase) Deposit(ctx context.Context, userID uuid.UUID, accountID uuid.UUID, amount decimal.Decimal) error {
 	// TODO: Lock db transaction
 
 	// Check ownership
 	if _, err := u.accountRepo.GetUserAccount(ctx, userID, accountID); err != nil {
-		return nil, errors.Wrap(err, "failed to get account")
-	}
-
-	// Update account balance
-	account, err := u.accountRepo.Deposit(ctx, accountID, amount)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to deposit")
+		return errors.Wrap(err, "failed to get account")
 	}
 
 	cashbox, err := u.getCashboxPocket(ctx, accountID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get cashbox pocket")
-	}
-
-	// Deposit to cashbox pocket
-	if err = u.pocketRepo.Deposit(ctx, cashbox.ID, amount); err != nil {
-		return nil, errors.Wrap(err, "failed to deposit to cashbox pocket")
+		return errors.Wrap(err, "failed to get cashbox pocket")
 	}
 
 	// Create Transaction
-	if _, err = u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
-		AccountID:    account.ID,
+	if _, err := u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
+		AccountID:    cashbox.AccountID,
 		FromPocketID: nil,
 		ToPocketID:   &cashbox.ID,
 		Type:         entity.TxTypeDeposit,
 		Amount:       amount,
 	}); err != nil {
-		return nil, errors.Wrap(err, "failed to create transaction")
-	}
-
-	return account, nil
-}
-
-func (u *usecase) UpdateBalance(ctx context.Context, userID uuid.UUID, accountID uuid.UUID, amount decimal.Decimal) (*entity.Account, error) {
-	// TODO: Lock db transaction
-
-	// Check ownership
-	if _, err := u.accountRepo.GetUserAccount(ctx, userID, accountID); err != nil {
-		return nil, errors.Wrap(err, "failed to get account")
+		return errors.Wrap(err, "failed to create transaction")
 	}
 
 	// Update account balance
-	account, differenceBalance, err := u.accountRepo.UpdateBalance(ctx, accountID, amount)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to update account")
+	if err := u.accountRepo.Deposit(ctx, accountID, amount); err != nil {
+		return errors.Wrap(err, "failed to deposit")
 	}
 
-	cashbox, err := u.getCashboxPocket(ctx, accountID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get cashbox pocket")
+	// Update cashbox pocket balance
+	if err = u.pocketRepo.Deposit(ctx, cashbox.ID, amount); err != nil {
+		return errors.Wrap(err, "failed to deposit to cashbox pocket")
 	}
 
-	// Deposit to cashbox pocket
-	if err = u.pocketRepo.Deposit(ctx, cashbox.ID, differenceBalance); err != nil {
-		return nil, errors.Wrap(err, "failed to deposit to cashbox pocket")
-	}
-
-	//  Create Transaction
-	if _, err = u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
-		AccountID:    accountID,
-		FromPocketID: nil,
-		ToPocketID:   &cashbox.ID,
-		Type:         entity.TxTypeDeposit,
-		Amount:       differenceBalance,
-	}); err != nil {
-		return nil, errors.Wrap(err, "failed to create transaction")
-	}
-
-	return account, nil
+	return nil
 }
+
+// func (u *usecase) UpdateBalance(ctx context.Context, userID uuid.UUID, accountID uuid.UUID, amount decimal.Decimal) (*entity.Account, error) {
+// 	// TODO: Lock db transaction
+
+// 	// Check ownership
+// 	if _, err := u.accountRepo.GetUserAccount(ctx, userID, accountID); err != nil {
+// 		return nil, errors.Wrap(err, "failed to get account")
+// 	}
+
+// 	// Update account balance
+// 	account, differenceBalance, err := u.accountRepo.UpdateBalance(ctx, accountID, amount)
+// 	if err != nil {
+// 		return nil, errors.Wrap(err, "failed to update account")
+// 	}
+
+// 	cashbox, err := u.getCashboxPocket(ctx, accountID)
+// 	if err != nil {
+// 		return nil, errors.Wrap(err, "failed to get cashbox pocket")
+// 	}
+
+// 	// Deposit to cashbox pocket
+// 	if err = u.pocketRepo.Deposit(ctx, cashbox.ID, differenceBalance); err != nil {
+// 		return nil, errors.Wrap(err, "failed to deposit to cashbox pocket")
+// 	}
+
+// 	//  Create Transaction
+// 	if _, err = u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
+// 		AccountID:    accountID,
+// 		FromPocketID: nil,
+// 		ToPocketID:   &cashbox.ID,
+// 		Type:         entity.TxTypeDeposit,
+// 		Amount:       differenceBalance,
+// 	}); err != nil {
+// 		return nil, errors.Wrap(err, "failed to create transaction")
+// 	}
+
+// 	return account, nil
+// }

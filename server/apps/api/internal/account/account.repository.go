@@ -139,10 +139,10 @@ func (r *repository) DeleteAccount(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *repository) Deposit(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (*entity.Account, error) {
+func (r *repository) Deposit(ctx context.Context, id uuid.UUID, amount decimal.Decimal) error {
 	var a model.Account
 	if err := r.db.First(&a, id).Error; err != nil {
-		return nil, errors.Wrap(err, "failed to get account")
+		return errors.Wrap(err, "failed to get account")
 	}
 
 	// TODO: Lock db transaction
@@ -150,19 +150,10 @@ func (r *repository) Deposit(ctx context.Context, id uuid.UUID, amount decimal.D
 	a.UpdatedAt = time.Now()
 
 	if err := r.db.Save(&a).Error; err != nil {
-		return nil, errors.Wrap(err, "failed to update account")
+		return errors.Wrap(err, "failed to update account")
 	}
 
-	return &entity.Account{
-		ID:        a.ID,
-		UserID:    a.UserID,
-		Type:      a.Type,
-		Name:      a.Name,
-		Bank:      a.Bank,
-		Balance:   a.Balance,
-		CreatedAt: a.CreatedAt,
-		UpdatedAt: a.UpdatedAt,
-	}, nil
+	return nil
 }
 
 func (r *repository) UpdateBalance(ctx context.Context, id uuid.UUID, amount decimal.Decimal) (account *entity.Account, differenceBalance decimal.Decimal, err error) {

@@ -25,7 +25,7 @@ func NewRepository(db *gorm.DB) interfaces.TransactionRepository {
 
 func (r *repository) GetTransactionByAccountID(ctx context.Context, userID uuid.UUID, pocketID uuid.UUID) ([]entity.Transaction, error) {
 	var transactions []*model.Transaction
-	if err := r.db.Where("account_id IN (?)", r.db.Model(&model.Account{}).Select("id").Where("user_id = ?", userID)).Find(&transactions).Error; err != nil {
+	if err := r.db.Where("account_id IN (?)", r.db.Model(&model.Account{}).Select("id").Where("user_id = ?", userID)).Order("created_at desc").Find(&transactions).Error; err != nil {
 		return nil, errors.Wrap(err, "failed to get transactions")
 	}
 

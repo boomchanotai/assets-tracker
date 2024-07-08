@@ -7,17 +7,20 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/interfaces"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 )
 
 type usecase struct {
-	pocketRepo  interfaces.PocketRepository
-	accountRepo interfaces.AccountRepository
+	pocketRepo      interfaces.PocketRepository
+	accountRepo     interfaces.AccountRepository
+	transactionRepo interfaces.TransactionRepository
 }
 
-func NewUsecase(pocketRepo interfaces.PocketRepository, accountRepo interfaces.AccountRepository) *usecase {
+func NewUsecase(pocketRepo interfaces.PocketRepository, accountRepo interfaces.AccountRepository, transactionRepo interfaces.TransactionRepository) *usecase {
 	return &usecase{
-		pocketRepo:  pocketRepo,
-		accountRepo: accountRepo,
+		pocketRepo:      pocketRepo,
+		accountRepo:     accountRepo,
+		transactionRepo: transactionRepo,
 	}
 }
 
@@ -80,6 +83,61 @@ func (u *usecase) DeletePocket(ctx context.Context, userID, pocketID uuid.UUID) 
 
 	if err := u.pocketRepo.DeletePocket(ctx, pocketID); err != nil {
 		return errors.Wrap(err, "failed to delete pocket")
+	}
+
+	return nil
+}
+
+func (u *usecase) Transfer(ctx context.Context, userID, fromPocketID, toPocketID uuid.UUID, amount decimal.Decimal) error {
+	// Check ownership
+	fromPocket, err := u.pocketRepo.GetPocketByID(ctx, userID, fromPocketID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	toPocket, err := u.pocketRepo.GetPocketByID(ctx, userID, toPocketID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	// Create transaction
+	if _, err := u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
+		AccountID:    fromPocket.AccountID,
+		FromPocketID: &fromPocket.ID,
+		ToPocketID:   &toPocket.ID,
+		Type:         entity.TxTypeDeposit,
+		Amount:       amount,
+	}); err != nil {
+		return errors.Wrap(err, "failed to create transaction")
+	}
+
+	if err := u.pocketRepo.Transfer(ctx, fromPocketID, toPocketID, amount); err != nil {
+		return errors.Wrap(err, "failed to transfer")
+	}
+
+	return nil
+}
+
+func (u *usecase) Withdraw(ctx context.Context, userID, pocketID uuid.UUID, amount decimal.Decimal) error {
+	// Check ownership
+	fromPocket, err := u.pocketRepo.GetPocketByID(ctx, userID, pocketID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get pocket")
+	}
+
+	// Create transaction
+	if _, err := u.transactionRepo.CreateTransaction(ctx, entity.TransactionInput{
+		AccountID:    fromPocket.AccountID,
+		FromPocketID: &fromPocket.ID,
+		ToPocketID:   nil,
+		Type:         entity.TxTypeDeposit,
+		Amount:       amount,
+	}); err != nil {
+		return errors.Wrap(err, "failed to create transaction")
+	}
+
+	if err := u.pocketRepo.Withdraw(ctx, pocketID, amount); err != nil {
+		return errors.Wrap(err, "failed to withdraw")
 	}
 
 	return nil

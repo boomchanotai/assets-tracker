@@ -31,7 +31,7 @@ func NewRepository(db *gorm.DB) interfaces.PocketRepository {
 
 func (r *repository) GetPocketsByAccountID(ctx context.Context, accountID uuid.UUID) ([]entity.Pocket, error) {
 	var pockets []*model.Pocket
-	if err := r.db.Where("account_id = ?", accountID).Find(&pockets).Error; err != nil {
+	if err := r.db.Where("account_id = ?", accountID).Order("created_at asc").Find(&pockets).Error; err != nil {
 		return nil, errors.Wrap(err, "failed to get pockets")
 	}
 
