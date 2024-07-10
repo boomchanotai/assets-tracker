@@ -14,6 +14,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@tanstack/svelte-query':
+        specifier: ^5.50.3
+        version: 5.50.3(svelte@4.2.7)
       bits-ui:
         specifier: ^0.21.11
         version: 0.21.11(svelte@4.2.7)
@@ -714,6 +717,19 @@ packages:
     resolution: {integrity: sha512-YNlnKRWF2sVojTpIyzwou9XoTNbzbzONwRhOoniEioF1AtaitTvVZblaQRrAzChWQ1bLYyYSWzM18y4WwgzJ+A==}
     dependencies:
       tslib: 2.4.1
+    dev: false
+
+  /@tanstack/query-core@5.50.1:
+    resolution: {integrity: sha512-lpfhKPrJlyV2DSVcQb/HuozH3Av3kws4ge22agx+lNGpFkS4vLZ7St0l3GLwlAD+bqB+qXGex3JdRKUNtMviEQ==}
+    dev: false
+
+  /@tanstack/svelte-query@5.50.3(svelte@4.2.7):
+    resolution: {integrity: sha512-fvdFoXL3MB6W4DKEiAbdtZGGGiruCbGhhdy5yDPZqqUCwgmTjAOCQaaFIJiUedvEx1YKI8weaUdqf/NojpJhRQ==}
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0-next.0
+    dependencies:
+      '@tanstack/query-core': 5.50.1
+      svelte: 4.2.7
     dev: false
 
   /@types/cookie@0.6.0:
