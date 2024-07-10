@@ -5,6 +5,7 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/moonrhythm/validator"
 )
 
 func (h *controller) Mount(r fiber.Router, authMiddleware authentication.AuthMiddleware) {
@@ -33,6 +34,27 @@ type registerRequest struct {
 	Password string `json:"password"`
 }
 
+func (r *registerRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.BodyParser(r); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := r.Validate(); err != nil {
+		return errors.Wrap(err, "failed to validate request")
+	}
+
+	return nil
+}
+
+func (r *registerRequest) Validate() error {
+	v := validator.New()
+	v.Must(r.Email != "", "email is required")
+	v.Must(r.Name != "", "name is required")
+	v.Must(r.Password != "", "password is required")
+
+	return errors.WithStack(v.Error())
+}
+
 type registerResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
@@ -40,32 +62,14 @@ type registerResponse struct {
 }
 
 func (h *controller) Register(ctx *fiber.Ctx) error {
-	var body registerRequest
-	if err := ctx.BodyParser(&body); err != nil {
+	var req registerRequest
+	if err := req.Parse(ctx); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
+			Error: err.Error(),
 		})
 	}
 
-	if body.Email == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Email is required",
-		})
-	}
-
-	if body.Name == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Name is required",
-		})
-	}
-
-	if body.Password == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Password is required",
-		})
-	}
-
-	res, err := h.usecase.Register(ctx.Context(), body.Email, body.Name, body.Password)
+	res, err := h.usecase.Register(ctx.Context(), req.Email, req.Name, req.Password)
 	if errors.Is(err, ErrEmailAlreadyExists) {
 		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
 			Error: "Email already exists",
@@ -89,6 +93,26 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
+func (l *loginRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.BodyParser(l); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := l.Validate(); err != nil {
+		return errors.Wrap(err, "failed to validate request")
+	}
+
+	return nil
+}
+
+func (l *loginRequest) Validate() error {
+	v := validator.New()
+	v.Must(l.Email != "", "email is required")
+	v.Must(l.Password != "", "password is required")
+
+	return errors.WithStack(v.Error())
+}
+
 type loginResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
@@ -96,26 +120,14 @@ type loginResponse struct {
 }
 
 func (h *controller) Login(ctx *fiber.Ctx) error {
-	var body loginRequest
-	if err := ctx.BodyParser(&body); err != nil {
+	var req loginRequest
+	if err := req.Parse(ctx); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
+			Error: err.Error(),
 		})
 	}
 
-	if body.Email == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Email is required",
-		})
-	}
-
-	if body.Password == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Password is required",
-		})
-	}
-
-	res, err := h.usecase.Login(ctx.UserContext(), body.Email, body.Password)
+	res, err := h.usecase.Login(ctx.UserContext(), req.Email, req.Password)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.HttpResponse{
 			Error: "Unauthorized",

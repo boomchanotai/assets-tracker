@@ -9,6 +9,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/moonrhythm/validator"
 	"github.com/shopspring/decimal"
 )
 
@@ -32,7 +33,6 @@ func (h *controller) Mount(r fiber.Router) {
 	r.Delete("/:id", h.DeleteAccount)
 
 	r.Post("/:id/deposit", h.Deposit)
-	// r.Post("/:id/update-balance", h.Update)
 }
 
 type accountResponse struct {
@@ -119,24 +119,39 @@ type createAccountRequest struct {
 	Bank string `json:"bank"`
 }
 
+func (a *createAccountRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.BodyParser(a); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := a.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (a *createAccountRequest) Validate() error {
+	v := validator.New()
+	v.Must(a.Type != "", "type is required")
+	v.Must(a.Name != "", "name is required")
+	v.Must(a.Bank != "", "bank is required")
+
+	return errors.WithStack(v.Error())
+}
+
 func (h *controller) CreateAccount(ctx *fiber.Ctx) error {
+	var req createAccountRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
 			Error: "Unauthorized",
-		})
-	}
-
-	var req createAccountRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if req.Type == "" || req.Name == "" || req.Bank == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
 		})
 	}
 
@@ -165,13 +180,43 @@ func (h *controller) CreateAccount(ctx *fiber.Ctx) error {
 }
 
 type updateAccountRequest struct {
-	Type    string          `json:"type"`
-	Name    string          `json:"name"`
-	Bank    string          `json:"bank"`
-	Balance decimal.Decimal `json:"balance"`
+	Id   uuid.UUID `params:"id"`
+	Type string    `json:"type"`
+	Name string    `json:"name"`
+	Bank string    `json:"bank"`
+}
+
+func (a *updateAccountRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.ParamsParser(a); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := ctx.BodyParser(a); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := a.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (a *updateAccountRequest) Validate() error {
+	v := validator.New()
+	v.Must(a.Id != uuid.Nil, "id is required")
+
+	return errors.WithStack(v.Error())
 }
 
 func (h *controller) UpdateAccount(ctx *fiber.Ctx) error {
+	var req updateAccountRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -179,22 +224,7 @@ func (h *controller) UpdateAccount(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var req updateAccountRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	paramId := ctx.Params("id")
-	accountId, err := uuid.Parse(paramId)
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	account, err := h.usecase.UpdateAccount(ctx.UserContext(), userID, accountId, entity.AccountInput{
+	account, err := h.usecase.UpdateAccount(ctx.UserContext(), userID, req.Id, entity.AccountInput{
 		Type: entity.AccountType(req.Type),
 		Name: req.Name,
 		Bank: req.Bank,
@@ -245,7 +275,32 @@ func (h *controller) DeleteAccount(ctx *fiber.Ctx) error {
 }
 
 type depositRequest struct {
+	Id     uuid.UUID       `params:"id"`
 	Amount decimal.Decimal `json:"amount"`
+}
+
+func (a *depositRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.ParamsParser(a); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := ctx.BodyParser(a); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := a.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (a *depositRequest) Validate() error {
+	v := validator.New()
+	v.Must(a.Id != uuid.Nil, "id is required")
+	v.Must(a.Amount.IsPositive(), "amount must be positive")
+
+	return errors.WithStack(v.Error())
 }
 
 func (h *controller) Deposit(ctx *fiber.Ctx) error {
@@ -257,27 +312,13 @@ func (h *controller) Deposit(ctx *fiber.Ctx) error {
 	}
 
 	var req depositRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := req.Parse(ctx); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
+			Error: err.Error(),
 		})
 	}
 
-	if req.Amount.IsNegative() {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	paramId := ctx.Params("id")
-	accountId, err := uuid.Parse(paramId)
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if err := h.usecase.Deposit(ctx.UserContext(), userID, accountId, req.Amount); err != nil {
+	if err := h.usecase.Deposit(ctx.UserContext(), userID, req.Id, req.Amount); err != nil {
 		return errors.Wrap(err, "failed to deposit")
 	}
 
@@ -285,55 +326,3 @@ func (h *controller) Deposit(ctx *fiber.Ctx) error {
 		Result: "success",
 	})
 }
-
-// type updateRequest struct {
-// 	Balance decimal.Decimal `json:"balance"`
-// }
-
-// func (h *controller) Update(ctx *fiber.Ctx) error {
-// 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
-// 	if err != nil {
-// 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
-// 			Error: "Unauthorized",
-// 		})
-// 	}
-
-// 	var req updateRequest
-// 	if err := ctx.BodyParser(&req); err != nil {
-// 		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-// 			Error: "Bad Request",
-// 		})
-// 	}
-
-// 	if req.Balance <= 0 {
-// 		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-// 			Error: "Bad Request",
-// 		})
-// 	}
-
-// 	paramId := ctx.Params("id")
-// 	accountId, err := uuid.Parse(paramId)
-// 	if err != nil {
-// 		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-// 			Error: "Bad Request",
-// 		})
-// 	}
-
-// 	account, err := h.usecase.UpdateBalance(ctx.UserContext(), userID, accountId, decimal.NewFromFloat(req.Balance))
-// 	if err != nil {
-// 		return errors.Wrap(err, "failed to update balance")
-// 	}
-
-// 	return ctx.JSON(dto.HttpResponse{
-// 		Result: accountResponse{
-// 			ID:        account.ID,
-// 			UserID:    account.UserID,
-// 			Type:      account.Type,
-// 			Name:      account.Name,
-// 			Bank:      account.Bank,
-// 			Balance:   account.Balance,
-// 			CreatedAt: account.CreatedAt,
-// 			UpdatedAt: account.UpdatedAt,
-// 		},
-// 	})
-// }

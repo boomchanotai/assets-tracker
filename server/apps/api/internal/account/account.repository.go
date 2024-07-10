@@ -122,6 +122,7 @@ func (r *repository) UpdateAccount(ctx context.Context, id uuid.UUID, input enti
 
 	return &entity.Account{
 		ID:        a.ID,
+		UserID:    a.UserID,
 		Type:      a.Type,
 		Name:      a.Name,
 		Bank:      a.Bank,

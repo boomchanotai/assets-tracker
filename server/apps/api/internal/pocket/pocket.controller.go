@@ -9,6 +9,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/moonrhythm/validator"
 	"github.com/shopspring/decimal"
 )
 
@@ -114,11 +115,38 @@ func (h *controller) GetPocket(ctx *fiber.Ctx) error {
 }
 
 type createPocketRequest struct {
-	AccountID string `json:"accountId"`
-	Name      string `json:"name"`
+	AccountID uuid.UUID `json:"accountId"`
+	Name      string    `json:"name"`
+}
+
+func (p *createPocketRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.BodyParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := p.Validate(); err != nil {
+		return errors.Wrap(err, "failed to validate request")
+	}
+
+	return nil
+}
+
+func (p *createPocketRequest) Validate() error {
+	v := validator.New()
+	v.Must(p.AccountID != uuid.Nil, "accountId is required")
+	v.Must(p.Name != "", "name is required")
+
+	return errors.WithStack(v.Error())
 }
 
 func (h *controller) CreatePocket(ctx *fiber.Ctx) error {
+	var req createPocketRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -126,29 +154,9 @@ func (h *controller) CreatePocket(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var req createPocketRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if req.AccountID == "" || req.Name == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	accountID, err := uuid.Parse(req.AccountID)
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
 	pocket, err := h.usecase.CreatePocket(ctx.UserContext(), entity.PocketInput{
 		UserID:    userID,
-		AccountID: accountID,
+		AccountID: req.AccountID,
 		Name:      req.Name,
 	})
 	if err != nil {
@@ -168,10 +176,42 @@ func (h *controller) CreatePocket(ctx *fiber.Ctx) error {
 }
 
 type updatePocketRequest struct {
-	Name string `json:"name"`
+	Id   uuid.UUID `params:"id"`
+	Name string    `json:"name"`
+}
+
+func (p *updatePocketRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.ParamsParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := ctx.BodyParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := p.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (p *updatePocketRequest) Validate() error {
+	v := validator.New()
+	v.Must(p.Id != uuid.Nil, "id is required")
+	v.Must(p.Name != "", "name is required")
+
+	return errors.WithStack(v.Error())
 }
 
 func (h *controller) UpdatePocket(ctx *fiber.Ctx) error {
+	var req updatePocketRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -179,21 +219,7 @@ func (h *controller) UpdatePocket(ctx *fiber.Ctx) error {
 		})
 	}
 
-	pocketID, err := uuid.Parse(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	var req updatePocketRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	pocket, err := h.usecase.UpdatePocket(ctx.UserContext(), userID, pocketID, entity.PocketInput{
+	pocket, err := h.usecase.UpdatePocket(ctx.UserContext(), userID, req.Id, entity.PocketInput{
 		Name: req.Name,
 	})
 	if err != nil {
@@ -237,11 +263,44 @@ func (h *controller) DeletePocket(ctx *fiber.Ctx) error {
 }
 
 type transferRequest struct {
-	ToPocketID uuid.UUID       `json:"toPocketId"`
-	Amount     decimal.Decimal `json:"amount"`
+	FromPocketID uuid.UUID       `params:"id"`
+	ToPocketID   uuid.UUID       `json:"toPocketId"`
+	Amount       decimal.Decimal `json:"amount"`
+}
+
+func (p *transferRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.ParamsParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := ctx.BodyParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := p.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (p *transferRequest) Validate() error {
+	v := validator.New()
+	v.Must(p.FromPocketID != uuid.Nil, "fromPocketId is required")
+	v.Must(p.ToPocketID != uuid.Nil, "toPocketId is required")
+	v.Must(!p.Amount.IsZero(), "amount is required")
+
+	return errors.WithStack(v.Error())
 }
 
 func (h *controller) Transfer(ctx *fiber.Ctx) error {
+	var req transferRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -249,27 +308,7 @@ func (h *controller) Transfer(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var req transferRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if req.ToPocketID == uuid.Nil || req.Amount.IsZero() {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	fromPocketID, err := uuid.Parse(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if err := h.usecase.Transfer(ctx.UserContext(), userID, fromPocketID, req.ToPocketID, req.Amount); err != nil {
+	if err := h.usecase.Transfer(ctx.UserContext(), userID, req.FromPocketID, req.ToPocketID, req.Amount); err != nil {
 		return errors.Wrap(err, "failed to transfer")
 	}
 
@@ -279,10 +318,42 @@ func (h *controller) Transfer(ctx *fiber.Ctx) error {
 }
 
 type withdrawRequest struct {
+	Id     uuid.UUID       `params:"id"`
 	Amount decimal.Decimal `json:"amount"`
 }
 
+func (p *withdrawRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.ParamsParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := ctx.BodyParser(p); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := p.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (p *withdrawRequest) Validate() error {
+	v := validator.New()
+	v.Must(p.Id != uuid.Nil, "id is required")
+	v.Must(!p.Amount.IsZero(), "amount is required")
+
+	return errors.WithStack(v.Error())
+}
+
 func (h *controller) Withdraw(ctx *fiber.Ctx) error {
+	var req withdrawRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -290,27 +361,7 @@ func (h *controller) Withdraw(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var req withdrawRequest
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if req.Amount.IsZero() {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	pocketID, err := uuid.Parse(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	if err := h.usecase.Withdraw(ctx.UserContext(), userID, pocketID, req.Amount); err != nil {
+	if err := h.usecase.Withdraw(ctx.UserContext(), userID, req.Id, req.Amount); err != nil {
 		return errors.Wrap(err, "failed to withdraw")
 	}
 
