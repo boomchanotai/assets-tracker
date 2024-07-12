@@ -1,6 +1,7 @@
 <script lang="ts">
 	import scb from '$lib/images/scb.png';
 	import kbank from '$lib/images/kbank.png';
+	import bbl from '$lib/images/bbl.jpg';
 	import Icon from '@iconify/svelte';
 
 	import Container from '$lib/components/Container.svelte';
@@ -19,28 +20,15 @@
 		securitiesCompanies,
 		mutualFundCompanies
 	} from '$lib/constants/bank';
-	import type { SelectOptions } from '@/types';
+	import type { Account, SelectOptions } from '@/types';
 
 	let selectedAccountType: SelectOptions | undefined;
 
-	const accounts = [
-		{
-			id: '1',
-			accountType: 'saving account',
-			accountNo: '442-961089-7',
-			bank: 'scb'
-		},
-		{
-			id: '2',
-			accountType: 'saving account',
-			accountNo: '125-032487-7',
-			bank: 'kbank'
-		}
-	];
+	export let accounts: Account[];
 
 	let selectedAccount: SelectOptions | undefined = {
 		value: accounts[0].id,
-		label: accounts[0].accountNo
+		label: accounts[0].name
 	};
 
 	function getAccount(accountId: string) {
@@ -53,6 +41,8 @@
 				return scb;
 			case 'kbank':
 				return kbank;
+			case 'bbl':
+				return bbl;
 			default:
 				return '';
 		}
@@ -93,7 +83,7 @@
 								/>
 							</div>
 							<div class="flex flex-col justify-start items-start">
-								<p class="text-sm font-medium">{getAccount(selectedAccount.value).accountNo}</p>
+								<p class="text-sm font-medium">{getAccount(selectedAccount.value).name}</p>
 								<p class="text-xs">{getBankName(getAccount(selectedAccount.value).bank)}</p>
 							</div>
 						</div>
@@ -113,7 +103,7 @@
 							<div class="flex flex-row gap-2 items-center">
 								<div><img src={getLogo(account.bank)} alt="scb" class="size-6 rounded-full" /></div>
 								<div class="flex flex-col justify-start items-start">
-									<p class="text-sm font-medium">{account.accountNo}</p>
+									<p class="text-sm font-medium">{account.name}</p>
 									<p class="text-xs">{getBankName(account.bank)}</p>
 								</div>
 							</div>

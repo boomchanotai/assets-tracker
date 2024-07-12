@@ -8,10 +8,17 @@
 	import Balance from '@/components/Balance.svelte';
 	import Trash from '@/components/Trash.svelte';
 	import { pockets } from '@/constants/pocket';
+	import { useAccounts } from '@/hook/queries/account';
+
+	const accounts = useAccounts();
 </script>
 
 <div class="space-y-4">
-	<Header />
+	{#if $accounts.isFetching}
+		<div>Loading...</div>
+	{:else}
+		<Header accounts={$accounts.data?.result ?? []} />
+	{/if}
 
 	<Container class="flex flex-row justify-between">
 		<Balance amount={14500} />

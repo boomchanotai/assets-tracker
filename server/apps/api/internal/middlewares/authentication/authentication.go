@@ -40,6 +40,12 @@ func (r *authMiddleware) Auth(ctx *fiber.Ctx) error {
 		})
 	}
 
+	if len(tokenByte[0]) < 7 {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.HttpResponse{
+			Result: "Unauthorized",
+		})
+	}
+
 	bearerToken := tokenByte[0][7:]
 	if len(bearerToken) == 0 {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(dto.HttpResponse{
