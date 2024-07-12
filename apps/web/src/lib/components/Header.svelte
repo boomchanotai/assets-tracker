@@ -10,6 +10,8 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select';
 
+	import { authStore } from '@/store/auth';
+
 	import {
 		bank,
 		bankAccountTypes,
@@ -62,11 +64,18 @@
 		const b = bank.filter(({ value }) => value === bankId);
 		return b.length > 0 ? b[0].label : '';
 	}
+
+	function handleSignout() {
+		authStore.clear();
+	}
 </script>
 
-<Container class="py-4 space-y-4"
-	><div>
+<Container class="py-4 space-y-4">
+	<div class="flex flex-row justify-between gap-6">
 		<h1 class="text-xl font-semibold">Cloud Pocket</h1>
+		<div>
+			<Button on:click={handleSignout}><Icon icon="ph:sign-out-bold" /></Button>
+		</div>
 	</div>
 	<div class="flex items-center gap-4">
 		<div>

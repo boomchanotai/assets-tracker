@@ -6,7 +6,6 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { useLoginMutation } from '@/hook/auth';
 	import { authStore } from '@/store/auth';
-	import { readable } from 'svelte/store';
 	import { goto } from '$app/navigation';
 
 	let email = '';

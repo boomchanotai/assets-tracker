@@ -1,3 +1,4 @@
+import { goto } from '$app/navigation';
 import { writable } from 'svelte/store';
 
 interface Auth {
@@ -19,14 +20,27 @@ const createAuthStore = () => {
 		const auth = localStorage.getItem('auth');
 		if (auth) {
 			update(() => JSON.parse(auth));
+		} else {
+			goto('/');
 		}
 
 		subscribe((value) => localStorage.setItem('auth', JSON.stringify(value)));
 	}
 
+	const set = (auth: Auth) => update(() => auth);
+
+	const clear = () => {
+		update(() => initialAuth);
+		if (localStorage !== undefined) {
+			localStorage.removeItem('auth');
+			goto('/');
+		}
+	};
+
 	return {
 		subscribe,
-		set: (auth: Auth) => update(() => auth)
+		set,
+		clear
 	};
 };
 
