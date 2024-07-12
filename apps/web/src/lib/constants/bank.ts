@@ -1,4 +1,4 @@
-export const bank = [
+export const banks = [
 	{
 		label: 'ธนาคารกรุงเทพ',
 		value: 'bbl'
@@ -40,26 +40,26 @@ export const bank = [
 export const bankAccountTypes = [
 	{
 		label: 'บัญชีออมทรัพย์',
-		value: 'saving account'
+		value: 'SAVING'
 	},
 	{
 		label: 'บัญชีเงินฝากประจำ',
-		value: 'fixed deposit account'
+		value: 'FIXED_DEPOSIT'
 	},
 	{
 		label: 'บัญชีเงินฝากเงินตราต่างประเทศ',
-		value: 'fcd account'
+		value: 'FCD'
 	}
 ];
 
 export const financialAccountType = [
 	{
 		label: 'บัญชีกองทุนรวม',
-		value: 'mutual fund account'
+		value: 'MUTUAL_FUND'
 	},
 	{
 		label: 'พอร์ตการลงทุน',
-		value: 'stock'
+		value: 'STOCK'
 	}
 ];
 
