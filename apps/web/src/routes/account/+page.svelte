@@ -10,7 +10,7 @@
 	import { pockets } from '@/constants/pocket';
 	import { useAccounts } from '@/hook/queries/account';
 
-	const accounts = useAccounts();
+	$: accounts = useAccounts();
 </script>
 
 <div class="space-y-4">
