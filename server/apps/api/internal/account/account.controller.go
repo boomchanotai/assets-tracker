@@ -4,6 +4,7 @@ import (
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
+	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/pocket"
 	"github.com/cockroachdb/errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -13,12 +14,18 @@ import (
 
 type controller struct {
 	usecase        *usecase
+	pocketUsecase  *pocket.Usecase
 	authMiddleware authentication.AuthMiddleware
 }
 
-func NewController(accountUsecase *usecase, authMiddleware authentication.AuthMiddleware) *controller {
+func NewController(
+	accountUsecase *usecase,
+	pocketUsecase *pocket.Usecase,
+	authMiddleware authentication.AuthMiddleware,
+) *controller {
 	return &controller{
 		usecase:        accountUsecase,
+		pocketUsecase:  pocketUsecase,
 		authMiddleware: authMiddleware,
 	}
 }
@@ -34,14 +41,15 @@ func (h *controller) Mount(r fiber.Router) {
 }
 
 type accountResponse struct {
-	ID        uuid.UUID          `json:"id"`
-	UserID    uuid.UUID          `json:"userId"`
-	Type      entity.AccountType `json:"type"`
-	Name      string             `json:"name"`
-	Bank      string             `json:"bank"`
-	Balance   decimal.Decimal    `json:"balance"`
-	CreatedAt int64              `json:"createdAt"`
-	UpdatedAt int64              `json:"updatedAt"`
+	ID        uuid.UUID               `json:"id"`
+	UserID    uuid.UUID               `json:"userId"`
+	Type      entity.AccountType      `json:"type"`
+	Name      string                  `json:"name"`
+	Bank      string                  `json:"bank"`
+	Balance   decimal.Decimal         `json:"balance"`
+	CreatedAt int64                   `json:"createdAt"`
+	UpdatedAt int64                   `json:"updatedAt"`
+	Pockets   []pocket.PocketResponse `json:"pockets"`
 }
 
 func (h *controller) GetAccounts(ctx *fiber.Ctx) error {
@@ -76,7 +84,37 @@ func (h *controller) GetAccounts(ctx *fiber.Ctx) error {
 	})
 }
 
+type accountRequest struct {
+	Id uuid.UUID `params:"id"`
+}
+
+func (a *accountRequest) Parse(ctx *fiber.Ctx) error {
+	if err := ctx.ParamsParser(a); err != nil {
+		return errors.Wrap(err, "failed to parse request")
+	}
+
+	if err := a.Validate(); err != nil {
+		return errors.Wrap(err, "invalid request")
+	}
+
+	return nil
+}
+
+func (a *accountRequest) Validate() error {
+	v := validator.New()
+	v.Must(a.Id != uuid.Nil, "id is required")
+
+	return errors.WithStack(v.Error())
+}
+
 func (h *controller) GetAccount(ctx *fiber.Ctx) error {
+	var req accountRequest
+	if err := req.Parse(ctx); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
+			Error: err.Error(),
+		})
+	}
+
 	userID, err := h.authMiddleware.GetUserIDFromContext(ctx.UserContext())
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(&dto.HttpResponse{
@@ -84,17 +122,26 @@ func (h *controller) GetAccount(ctx *fiber.Ctx) error {
 		})
 	}
 
-	paramId := ctx.Params("id")
-	accountId, err := uuid.Parse(paramId)
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(&dto.HttpResponse{
-			Error: "Bad Request",
-		})
-	}
-
-	account, err := h.usecase.GetAccount(ctx.UserContext(), userID, accountId)
+	account, err := h.usecase.GetAccount(ctx.UserContext(), userID, req.Id)
 	if err != nil {
 		return errors.Wrap(err, "failed to get account")
+	}
+
+	pockets, err := h.pocketUsecase.GetPocketsByAccountID(ctx.UserContext(), userID, req.Id)
+	if err != nil {
+		return errors.Wrap(err, "failed to get pockets")
+	}
+
+	pocketsResponse := make([]pocket.PocketResponse, 0, len(pockets))
+	for _, p := range pockets {
+		pocketsResponse = append(pocketsResponse, pocket.PocketResponse{
+			ID:        p.ID,
+			AccountID: p.AccountID,
+			Name:      p.Name,
+			Balance:   p.Balance,
+			CreatedAt: p.CreatedAt.Unix(),
+			UpdatedAt: p.UpdatedAt.Unix(),
+		})
 	}
 
 	return ctx.JSON(dto.HttpResponse{
@@ -107,6 +154,7 @@ func (h *controller) GetAccount(ctx *fiber.Ctx) error {
 			Balance:   account.Balance,
 			CreatedAt: account.CreatedAt.Unix(),
 			UpdatedAt: account.UpdatedAt.Unix(),
+			Pockets:   pocketsResponse,
 		},
 	})
 }

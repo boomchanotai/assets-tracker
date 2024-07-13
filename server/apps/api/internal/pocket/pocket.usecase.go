@@ -10,21 +10,21 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type usecase struct {
+type Usecase struct {
 	pocketRepo      interfaces.PocketRepository
 	accountRepo     interfaces.AccountRepository
 	transactionRepo interfaces.TransactionRepository
 }
 
-func NewUsecase(pocketRepo interfaces.PocketRepository, accountRepo interfaces.AccountRepository, transactionRepo interfaces.TransactionRepository) *usecase {
-	return &usecase{
+func NewUsecase(pocketRepo interfaces.PocketRepository, accountRepo interfaces.AccountRepository, transactionRepo interfaces.TransactionRepository) *Usecase {
+	return &Usecase{
 		pocketRepo:      pocketRepo,
 		accountRepo:     accountRepo,
 		transactionRepo: transactionRepo,
 	}
 }
 
-func (u *usecase) GetPocket(ctx context.Context, userID, pocketID uuid.UUID) (*entity.Pocket, error) {
+func (u *Usecase) GetPocket(ctx context.Context, userID, pocketID uuid.UUID) (*entity.Pocket, error) {
 	pocket, err := u.pocketRepo.GetPocketByID(ctx, userID, pocketID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get pocket")
@@ -33,7 +33,7 @@ func (u *usecase) GetPocket(ctx context.Context, userID, pocketID uuid.UUID) (*e
 	return pocket, nil
 }
 
-func (u *usecase) GetPocketsByAccountID(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]entity.Pocket, error) {
+func (u *Usecase) GetPocketsByAccountID(ctx context.Context, userID uuid.UUID, accountID uuid.UUID) ([]entity.Pocket, error) {
 	// Check account ownership
 	if _, err := u.accountRepo.GetUserAccount(ctx, userID, accountID); err != nil {
 		return nil, errors.Wrap(err, "failed to get account")
@@ -47,7 +47,7 @@ func (u *usecase) GetPocketsByAccountID(ctx context.Context, userID uuid.UUID, a
 	return pockets, nil
 }
 
-func (u *usecase) CreatePocket(ctx context.Context, input entity.PocketInput) (*entity.Pocket, error) {
+func (u *Usecase) CreatePocket(ctx context.Context, input entity.PocketInput) (*entity.Pocket, error) {
 	// Check account ownership
 	if _, err := u.accountRepo.GetUserAccount(ctx, input.UserID, input.AccountID); err != nil {
 		return nil, errors.Wrap(err, "failed to get account")
@@ -61,7 +61,7 @@ func (u *usecase) CreatePocket(ctx context.Context, input entity.PocketInput) (*
 	return pocket, nil
 }
 
-func (u *usecase) UpdatePocket(ctx context.Context, userID, pocketID uuid.UUID, input entity.PocketInput) (*entity.Pocket, error) {
+func (u *Usecase) UpdatePocket(ctx context.Context, userID, pocketID uuid.UUID, input entity.PocketInput) (*entity.Pocket, error) {
 	// Check ownership
 	if _, err := u.pocketRepo.GetPocketByID(ctx, userID, pocketID); err != nil {
 		return nil, errors.Wrap(err, "failed to get pocket")
@@ -75,7 +75,7 @@ func (u *usecase) UpdatePocket(ctx context.Context, userID, pocketID uuid.UUID, 
 	return pocket, nil
 }
 
-func (u *usecase) DeletePocket(ctx context.Context, userID, pocketID uuid.UUID) error {
+func (u *Usecase) DeletePocket(ctx context.Context, userID, pocketID uuid.UUID) error {
 	// Check ownership
 	if _, err := u.pocketRepo.GetPocketByID(ctx, userID, pocketID); err != nil {
 		return errors.Wrap(err, "failed to get pocket")
@@ -88,7 +88,7 @@ func (u *usecase) DeletePocket(ctx context.Context, userID, pocketID uuid.UUID) 
 	return nil
 }
 
-func (u *usecase) Transfer(ctx context.Context, userID, fromPocketID, toPocketID uuid.UUID, amount decimal.Decimal) error {
+func (u *Usecase) Transfer(ctx context.Context, userID, fromPocketID, toPocketID uuid.UUID, amount decimal.Decimal) error {
 	// Check ownership
 	fromPocket, err := u.pocketRepo.GetPocketByID(ctx, userID, fromPocketID)
 	if err != nil {
@@ -118,7 +118,7 @@ func (u *usecase) Transfer(ctx context.Context, userID, fromPocketID, toPocketID
 	return nil
 }
 
-func (u *usecase) Withdraw(ctx context.Context, userID, pocketID uuid.UUID, amount decimal.Decimal) error {
+func (u *Usecase) Withdraw(ctx context.Context, userID, pocketID uuid.UUID, amount decimal.Decimal) error {
 	// Check ownership
 	fromPocket, err := u.pocketRepo.GetPocketByID(ctx, userID, pocketID)
 	if err != nil {

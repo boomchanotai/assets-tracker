@@ -65,11 +65,11 @@ func main() {
 	authUsecase := auth.NewUsecase(userRepo, &conf.JWT)
 	authController := auth.NewController(authUsecase, authMiddleware)
 
-	accountUsecase := account.NewUsecase(accountRepo, pocketRepo, transactionRepo)
-	accountController := account.NewController(accountUsecase, authMiddleware)
-
 	pocketUsecase := pocket.NewUsecase(pocketRepo, accountRepo, transactionRepo)
 	pocketController := pocket.NewController(pocketUsecase, authMiddleware)
+
+	accountUsecase := account.NewUsecase(accountRepo, pocketRepo, transactionRepo)
+	accountController := account.NewController(accountUsecase, pocketUsecase, authMiddleware)
 
 	transactionUsecase := transaction.NewUsecase(transactionRepo, accountRepo)
 	transactionController := transaction.NewController(transactionUsecase, authMiddleware)

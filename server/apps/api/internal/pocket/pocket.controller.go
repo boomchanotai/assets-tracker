@@ -12,11 +12,11 @@ import (
 )
 
 type controller struct {
-	usecase        *usecase
+	usecase        *Usecase
 	authMiddleware authentication.AuthMiddleware
 }
 
-func NewController(pocketUsecase *usecase, authMiddleware authentication.AuthMiddleware) *controller {
+func NewController(pocketUsecase *Usecase, authMiddleware authentication.AuthMiddleware) *controller {
 	return &controller{
 		usecase:        pocketUsecase,
 		authMiddleware: authMiddleware,
@@ -34,7 +34,7 @@ func (h *controller) Mount(r fiber.Router) {
 	r.Post("/:id/withdraw", h.Withdraw)
 }
 
-type pocketResponse struct {
+type PocketResponse struct {
 	ID        uuid.UUID       `json:"id"`
 	AccountID uuid.UUID       `json:"accountId"`
 	Name      string          `json:"name"`
@@ -63,9 +63,9 @@ func (h *controller) GetPocketsByAccountID(ctx *fiber.Ctx) error {
 		return errors.Wrap(err, "failed to get pockets")
 	}
 
-	res := make([]pocketResponse, 0, len(pockets))
+	res := make([]PocketResponse, 0, len(pockets))
 	for _, pocket := range pockets {
-		res = append(res, pocketResponse{
+		res = append(res, PocketResponse{
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
@@ -101,7 +101,7 @@ func (h *controller) GetPocket(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(dto.HttpResponse{
-		Result: pocketResponse{
+		Result: PocketResponse{
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
@@ -162,7 +162,7 @@ func (h *controller) CreatePocket(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(dto.HttpResponse{
-		Result: pocketResponse{
+		Result: PocketResponse{
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
@@ -225,7 +225,7 @@ func (h *controller) UpdatePocket(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(dto.HttpResponse{
-		Result: pocketResponse{
+		Result: PocketResponse{
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
