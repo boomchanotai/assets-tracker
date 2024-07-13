@@ -3,7 +3,7 @@
 	import { cn } from '@/utils';
 	import Draggable from './Draggable.svelte';
 
-	export let pockets: Pocket__SvelteComponent_[];
+	export let pockets: Pocket[];
 	export let id: string;
 	export let name: string;
 	export let amount: number;
