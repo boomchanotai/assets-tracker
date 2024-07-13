@@ -1,8 +1,6 @@
 package account
 
 import (
-	"time"
-
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
@@ -42,8 +40,8 @@ type accountResponse struct {
 	Name      string             `json:"name"`
 	Bank      string             `json:"bank"`
 	Balance   decimal.Decimal    `json:"balance"`
-	CreatedAt time.Time          `json:"createdAt"`
-	UpdatedAt time.Time          `json:"updatedAt"`
+	CreatedAt int64              `json:"createdAt"`
+	UpdatedAt int64              `json:"updatedAt"`
 }
 
 func (h *controller) GetAccounts(ctx *fiber.Ctx) error {
@@ -68,8 +66,8 @@ func (h *controller) GetAccounts(ctx *fiber.Ctx) error {
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt,
-			UpdatedAt: account.UpdatedAt,
+			CreatedAt: account.CreatedAt.Unix(),
+			UpdatedAt: account.UpdatedAt.Unix(),
 		})
 	}
 
@@ -107,8 +105,8 @@ func (h *controller) GetAccount(ctx *fiber.Ctx) error {
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt,
-			UpdatedAt: account.UpdatedAt,
+			CreatedAt: account.CreatedAt.Unix(),
+			UpdatedAt: account.UpdatedAt.Unix(),
 		},
 	})
 }
@@ -173,8 +171,8 @@ func (h *controller) CreateAccount(ctx *fiber.Ctx) error {
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt,
-			UpdatedAt: account.UpdatedAt,
+			CreatedAt: account.CreatedAt.Unix(),
+			UpdatedAt: account.UpdatedAt.Unix(),
 		},
 	})
 }
@@ -242,8 +240,8 @@ func (h *controller) UpdateAccount(ctx *fiber.Ctx) error {
 			Name:      account.Name,
 			Bank:      account.Bank,
 			Balance:   account.Balance,
-			CreatedAt: account.CreatedAt,
-			UpdatedAt: account.UpdatedAt,
+			CreatedAt: account.CreatedAt.Unix(),
+			UpdatedAt: account.UpdatedAt.Unix(),
 		},
 	})
 }

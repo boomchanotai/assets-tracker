@@ -1,8 +1,6 @@
 package transaction
 
 import (
-	"time"
-
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
 	"github.com/cockroachdb/errors"
@@ -33,8 +31,8 @@ type transactionResponse struct {
 	FromPocketID *uuid.UUID      `json:"fromPocketId"`
 	ToPocketID   *uuid.UUID      `json:"toPocketId"`
 	Amount       decimal.Decimal `json:"amount"`
-	CreatedAt    time.Time       `json:"createdAt"`
-	UpdatedAt    time.Time       `json:"updatedAt"`
+	CreatedAt    int64           `json:"createdAt"`
+	UpdatedAt    int64           `json:"updatedAt"`
 }
 
 func (h *controller) GetTransactionByAccountID(ctx *fiber.Ctx) error {
@@ -69,8 +67,8 @@ func (h *controller) GetTransactionByAccountID(ctx *fiber.Ctx) error {
 			FromPocketID: transaction.FromPocketID,
 			ToPocketID:   transaction.ToPocketID,
 			Amount:       transaction.Amount,
-			CreatedAt:    transaction.CreatedAt,
-			UpdatedAt:    transaction.UpdatedAt,
+			CreatedAt:    transaction.CreatedAt.Unix(),
+			UpdatedAt:    transaction.UpdatedAt.Unix(),
 		})
 	}
 

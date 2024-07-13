@@ -1,8 +1,6 @@
 package pocket
 
 import (
-	"time"
-
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/dto"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/entity"
 	"github.com/boomchanotai/assets-tracker/server/apps/api/internal/middlewares/authentication"
@@ -41,8 +39,8 @@ type pocketResponse struct {
 	AccountID uuid.UUID       `json:"accountId"`
 	Name      string          `json:"name"`
 	Balance   decimal.Decimal `json:"balance"`
-	CreatedAt time.Time       `json:"createdAt"`
-	UpdatedAt time.Time       `json:"updatedAt"`
+	CreatedAt int64           `json:"createdAt"`
+	UpdatedAt int64           `json:"updatedAt"`
 }
 
 func (h *controller) GetPocketsByAccountID(ctx *fiber.Ctx) error {
@@ -72,8 +70,8 @@ func (h *controller) GetPocketsByAccountID(ctx *fiber.Ctx) error {
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
 			Balance:   pocket.Balance,
-			CreatedAt: pocket.CreatedAt,
-			UpdatedAt: pocket.UpdatedAt,
+			CreatedAt: pocket.CreatedAt.Unix(),
+			UpdatedAt: pocket.UpdatedAt.Unix(),
 		})
 	}
 
@@ -108,8 +106,8 @@ func (h *controller) GetPocket(ctx *fiber.Ctx) error {
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
 			Balance:   pocket.Balance,
-			CreatedAt: pocket.CreatedAt,
-			UpdatedAt: pocket.UpdatedAt,
+			CreatedAt: pocket.CreatedAt.Unix(),
+			UpdatedAt: pocket.UpdatedAt.Unix(),
 		},
 	})
 }
@@ -169,8 +167,8 @@ func (h *controller) CreatePocket(ctx *fiber.Ctx) error {
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
 			Balance:   pocket.Balance,
-			CreatedAt: pocket.CreatedAt,
-			UpdatedAt: pocket.UpdatedAt,
+			CreatedAt: pocket.CreatedAt.Unix(),
+			UpdatedAt: pocket.UpdatedAt.Unix(),
 		},
 	})
 }
@@ -232,8 +230,8 @@ func (h *controller) UpdatePocket(ctx *fiber.Ctx) error {
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
 			Balance:   pocket.Balance,
-			CreatedAt: pocket.CreatedAt,
-			UpdatedAt: pocket.UpdatedAt,
+			CreatedAt: pocket.CreatedAt.Unix(),
+			UpdatedAt: pocket.UpdatedAt.Unix(),
 		},
 	})
 }
