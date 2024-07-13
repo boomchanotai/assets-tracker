@@ -17,6 +17,22 @@ export const getAccounts = async () => {
 	return reponse.json();
 };
 
+export const getAccount = async ({ id }: { id: string }) => {
+	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/account/${id}`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: 'Bearer ' + get(authStore).accessToken
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error('Account not found');
+	}
+
+	return response.json();
+};
+
 export const createAccount = async ({
 	type,
 	name,

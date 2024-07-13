@@ -2,45 +2,33 @@
 	import Header from '$lib/components/Header.svelte';
 	import Container from '@/components/Container.svelte';
 	import Pocket from '@/components/Pocket.svelte';
-	import Button from '@/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import Balance from '@/components/Balance.svelte';
 	import Trash from '@/components/Trash.svelte';
 	import { pockets } from '@/constants/pocket';
 	import { useAccounts } from '@/hook/queries/account';
+	import HeaderSkeleton from '@/components/skeleton/HeaderSkeleton.svelte';
+	import { accountStore } from '@/store/account';
 
 	$: accounts = useAccounts();
+
+	let accountId: string | null = null;
+	accountStore.subscribe((value) => {
+		accountId = value;
+	});
 </script>
 
 <div class="space-y-4">
 	{#if $accounts.isFetching}
-		<div>Loading...</div>
+		<HeaderSkeleton />
 	{:else}
 		<Header accounts={$accounts.data?.result ?? []} />
 	{/if}
 
-	<Container class="flex flex-row justify-between">
-		<Balance amount={14500} />
-		<div>
-			<Dialog.Root>
-				<Dialog.Trigger>
-					<Button>อัพเดตยอดเงิน</Button>
-				</Dialog.Trigger>
-				<Dialog.Content class="sm:max-w-[425px]">
-					<Dialog.Header class="mb-4">
-						<Dialog.Title>Update Balance</Dialog.Title>
-					</Dialog.Header>
-					<div>
-						<Input id="balance" type="number" placeholder="Amount" />
-					</div>
-					<Dialog.Footer>
-						<Button type="submit">Save changes</Button>
-					</Dialog.Footer>
-				</Dialog.Content>
-			</Dialog.Root>
-		</div>
-	</Container>
+	{#if accountId === null}
+		<p>Account not found</p>
+	{:else}
+		<Balance {accountId} />
+	{/if}
 
 	<Container class="space-y-8">
 		<div class="grid grid-cols-12 gap-4">

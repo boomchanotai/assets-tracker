@@ -13,6 +13,7 @@
 	import { banks } from '$lib/constants/bank';
 	import type { Account, SelectOptions } from '@/types';
 	import NewAccount from './dialog/NewAccount.svelte';
+	import { accountStore } from '@/store/account';
 
 	export let accounts: Account[];
 
@@ -20,11 +21,13 @@
 
 	if (accounts.length === 0) {
 		selectedAccount = undefined;
+		accountStore.clear();
 	} else {
 		selectedAccount = {
 			value: accounts[0].id,
 			label: accounts[0].name
 		};
+		accountStore.set(selectedAccount?.value);
 	}
 
 	function getAccount(accountId: string) {
