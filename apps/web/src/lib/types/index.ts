@@ -12,6 +12,16 @@ export type Account = {
 	name: string;
 	bank: string;
 	balance: string;
-	createdAt: string;
-	updatedAt: string;
+	createdAt: number;
+	updatedAt: number;
+	pockets: Pocket[];
+};
+
+export type Pocket = {
+	id: string;
+	accountId: string;
+	name: string;
+	balance: string;
+	createdAt: number;
+	updatedAt: number;
 };

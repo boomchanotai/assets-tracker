@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { pockets } from '@/constants/pocket';
+	import { getPocketName } from '$lib/pocket';
 	import Icon from '@iconify/svelte';
 
 	export let draggableId: string;
@@ -20,21 +20,6 @@
 	function move(from: string, to: string) {
 		fromPocket = from;
 		toPocket = to;
-	}
-
-	function getPocketName(targetId: string | null) {
-		if (!targetId) return '';
-
-		switch (targetId) {
-			case 'cashbox':
-				return 'Cashbox';
-			case 'trash':
-				return 'ใช้จ่าย';
-			default:
-				const pks = pockets.filter(({ id }) => id === targetId);
-				if (pks.length === 0) return '';
-				return pks[0].name;
-		}
 	}
 </script>
 
