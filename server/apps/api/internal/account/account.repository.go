@@ -31,7 +31,7 @@ func NewRepository(db *gorm.DB) interfaces.AccountRepository {
 
 func (r *repository) GetUserAccounts(ctx context.Context, userID uuid.UUID) ([]entity.Account, error) {
 	var accounts []*model.Account
-	if err := r.db.Where("user_id = ?", userID).Find(&accounts).Error; err != nil {
+	if err := r.db.Where("user_id = ?", userID).Order("created_at asc").Find(&accounts).Error; err != nil {
 		return nil, errors.Wrap(err, "failed to get user accounts")
 	}
 

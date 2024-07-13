@@ -37,7 +37,7 @@ func NewRepository(db *gorm.DB, redisClient *redis.Client, jwtConfig *jwt.Config
 
 func (r *repository) GetUsers(ctx context.Context) ([]entity.User, error) {
 	var users []model.User
-	if err := r.db.Find(&users).Error; err != nil {
+	if err := r.db.Order("created_at asc").Find(&users).Error; err != nil {
 		return nil, errors.Wrap(err, "can't get users")
 	}
 
