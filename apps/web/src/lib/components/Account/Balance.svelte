@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Currency } from '@/types';
 	import Container from '../Container.svelte';
-	import UpdateBalance from '../dialog/UpdateBalance.svelte';
+	import UpdateBalance from '../dialog/AddBalance.svelte';
 
+	export let accountId: string;
 	export let amount: number = 0;
 	export let currency: Currency = 'THB';
 </script>
@@ -13,6 +14,6 @@
 		<p class="font-semibold text-xl">$ {amount} {currency}</p>
 	</div>
 	<div>
-		<UpdateBalance />
+		<UpdateBalance {accountId} />
 	</div>
 </Container>

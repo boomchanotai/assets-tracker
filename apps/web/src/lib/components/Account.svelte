@@ -11,5 +11,10 @@
 {#if $currentAccount.isFetching}
 	<BalanceSkeleton />
 {:else}
-	<Balance amount={15000} />
+	<Balance
+		{accountId}
+		amount={$currentAccount.data?.result.balance
+			? parseFloat($currentAccount.data?.result.balance)
+			: 0}
+	/>
 {/if}

@@ -57,3 +57,20 @@ export const createAccount = async ({
 
 	return response.json();
 };
+
+export const deposit = async ({ id, amount }: { id: string; amount: number }) => {
+	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/account/${id}/deposit`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: 'Bearer ' + get(authStore).accessToken
+		},
+		body: JSON.stringify({ amount })
+	});
+
+	if (!response.ok) {
+		throw new Error('Deposit failed');
+	}
+
+	return response.json();
+};
