@@ -3,9 +3,10 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { getPocketName } from '$lib/pocket';
 	import Icon from '@iconify/svelte';
+	import Pocket from './Pocket.svelte';
 
+	export let pockets: Pocket[];
 	export let draggableId: string;
 	export let draggable: boolean;
 
@@ -21,6 +22,19 @@
 		fromPocket = from;
 		toPocket = to;
 	}
+
+	const getPocketName = (targetId: string | null) => {
+		if (!targetId) return '';
+
+		switch (targetId) {
+			case 'cashbox':
+				return 'Cashbox';
+			case 'trash':
+				return 'Out';
+			default:
+				return pockets.filter(({ id }) => id === targetId)[0].name;
+		}
+	};
 </script>
 
 <div class="h-full w-full">

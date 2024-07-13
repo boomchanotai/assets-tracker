@@ -11,13 +11,14 @@
 	<div class="grid grid-cols-12 gap-4">
 		<div class="col-span-9 h-full">
 			<Pocket
+				{pockets}
 				id="cashbox"
 				name="Cashbox"
 				amount={cashboxPocket?.balance ? parseFloat(cashboxPocket?.balance) : 0}
 			/>
 		</div>
 		<div class="col-span-3">
-			<Trash />
+			<Trash {pockets} />
 		</div>
 	</div>
 	{#if !pockets}
@@ -26,6 +27,7 @@
 		<div class="grid grid-cols-2 gap-8">
 			{#each pockets as pocket}
 				<Pocket
+					{pockets}
 					class="aspect-square"
 					id={pocket.id}
 					name={pocket.name}
