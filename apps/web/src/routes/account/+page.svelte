@@ -2,12 +2,14 @@
 	import Header from '$lib/components/Header.svelte';
 	import Container from '@/components/Container.svelte';
 	import Pocket from '@/components/Pocket.svelte';
-	import Balance from '@/components/Balance.svelte';
+	import Balance from '@/components/Account/Balance.svelte';
 	import Trash from '@/components/Trash.svelte';
 	import { pockets } from '@/constants/pocket';
 	import { useAccounts } from '@/hook/queries/account';
 	import HeaderSkeleton from '@/components/skeleton/HeaderSkeleton.svelte';
 	import { accountStore } from '@/store/account';
+	import Account from '@/components/Account.svelte';
+	import AccountSkeleton from '@/components/skeleton/AccountSkeleton.svelte';
 
 	$: accounts = useAccounts();
 
@@ -25,9 +27,9 @@
 	{/if}
 
 	{#if accountId === null}
-		<p>Account not found</p>
+		<AccountSkeleton />
 	{:else}
-		<Balance {accountId} />
+		<Account {accountId} />
 	{/if}
 
 	<Container class="space-y-8">

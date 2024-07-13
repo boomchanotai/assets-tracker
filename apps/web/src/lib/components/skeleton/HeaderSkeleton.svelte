@@ -5,7 +5,7 @@
 <Container class="py-4 space-y-4 animate-pulse">
 	<div class="flex flex-row justify-between gap-6">
 		<div class="bg-gray-200 rounded-full w-48 h-6"></div>
-		<div class="bg-gray-200 w-12 h-10 rounded"></div>
+		<div class="bg-gray-200 w-12 h-10 rounded-lg"></div>
 	</div>
 	<div class="flex items-center gap-4">
 		<div
@@ -19,6 +19,6 @@
 				</div>
 			</div>
 		</div>
-		<div class="bg-gray-200 w-12 h-10 rounded"></div>
+		<div class="bg-gray-200 w-12 h-10 rounded-lg"></div>
 	</div>
 </Container>
