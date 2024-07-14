@@ -74,7 +74,7 @@ func (r *repository) CreatePocket(ctx context.Context, input entity.PocketInput)
 		ID:        uuid.New(),
 		AccountID: input.AccountID,
 		Name:      input.Name,
-		Type:      input.Type,
+		Type:      entity.PocketTypeNormal,
 		Balance:   decimal.NewFromInt(0), // Initial balance is 0
 	}
 

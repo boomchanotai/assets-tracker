@@ -35,12 +35,13 @@ func (h *controller) Mount(r fiber.Router) {
 }
 
 type PocketResponse struct {
-	ID        uuid.UUID       `json:"id"`
-	AccountID uuid.UUID       `json:"accountId"`
-	Name      string          `json:"name"`
-	Balance   decimal.Decimal `json:"balance"`
-	CreatedAt int64           `json:"createdAt"`
-	UpdatedAt int64           `json:"updatedAt"`
+	ID        uuid.UUID         `json:"id"`
+	AccountID uuid.UUID         `json:"accountId"`
+	Name      string            `json:"name"`
+	Type      entity.PocketType `json:"type"`
+	Balance   decimal.Decimal   `json:"balance"`
+	CreatedAt int64             `json:"createdAt"`
+	UpdatedAt int64             `json:"updatedAt"`
 }
 
 func (h *controller) GetPocketsByAccountID(ctx *fiber.Ctx) error {
@@ -69,6 +70,7 @@ func (h *controller) GetPocketsByAccountID(ctx *fiber.Ctx) error {
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
+			Type:      pocket.Type,
 			Balance:   pocket.Balance,
 			CreatedAt: pocket.CreatedAt.Unix(),
 			UpdatedAt: pocket.UpdatedAt.Unix(),
@@ -105,6 +107,7 @@ func (h *controller) GetPocket(ctx *fiber.Ctx) error {
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
+			Type:      pocket.Type,
 			Balance:   pocket.Balance,
 			CreatedAt: pocket.CreatedAt.Unix(),
 			UpdatedAt: pocket.UpdatedAt.Unix(),
@@ -166,6 +169,7 @@ func (h *controller) CreatePocket(ctx *fiber.Ctx) error {
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
+			Type:      pocket.Type,
 			Balance:   pocket.Balance,
 			CreatedAt: pocket.CreatedAt.Unix(),
 			UpdatedAt: pocket.UpdatedAt.Unix(),
@@ -229,6 +233,7 @@ func (h *controller) UpdatePocket(ctx *fiber.Ctx) error {
 			ID:        pocket.ID,
 			AccountID: pocket.AccountID,
 			Name:      pocket.Name,
+			Type:      pocket.Type,
 			Balance:   pocket.Balance,
 			CreatedAt: pocket.CreatedAt.Unix(),
 			UpdatedAt: pocket.UpdatedAt.Unix(),

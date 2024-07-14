@@ -138,6 +138,7 @@ func (h *controller) GetAccount(ctx *fiber.Ctx) error {
 			ID:        p.ID,
 			AccountID: p.AccountID,
 			Name:      p.Name,
+			Type:      p.Type,
 			Balance:   p.Balance,
 			CreatedAt: p.CreatedAt.Unix(),
 			UpdatedAt: p.UpdatedAt.Unix(),
