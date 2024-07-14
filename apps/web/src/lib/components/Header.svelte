@@ -18,6 +18,7 @@
 	export let accounts: Account[];
 
 	let selectedAccount: SelectOptions | undefined;
+	$: if (selectedAccount) accountStore.set(selectedAccount?.value);
 
 	if (accounts.length === 0) {
 		selectedAccount = undefined;
