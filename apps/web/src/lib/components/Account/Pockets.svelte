@@ -3,6 +3,7 @@
 	import Pocket from '$lib/components/Pocket.svelte';
 	import Trash from '$lib/components/Trash.svelte';
 	import type { Pocket as PocketType } from '$lib/types';
+	import AddPocket from '../dialog/AddPocket.svelte';
 
 	export let accountId: string;
 	export let cashboxPocket;
@@ -25,6 +26,10 @@
 		<div class="col-span-3">
 			<Trash {accountId} {pockets} />
 		</div>
+	</div>
+	<div class="flex flex-row justify-between items-center">
+		<div class="font-semibold text-lg">Pockets</div>
+		<AddPocket {accountId} />
 	</div>
 	{#if !pockets}
 		<p class="text-center text-gray-500">No pockets found</p>

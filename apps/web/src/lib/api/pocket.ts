@@ -1,6 +1,23 @@
 import { authStore } from '@/store/auth';
 import { get } from 'svelte/store';
 
+export const createPocket = async ({ accountId, name }: { accountId: string; name: string }) => {
+	const response = await fetch(`${import.meta.env.VITE_BASE_URL}/pocket`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: 'Bearer ' + get(authStore).accessToken
+		},
+		body: JSON.stringify({ accountId, name })
+	});
+
+	if (!response.ok) {
+		throw new Error('Pocket creation failed');
+	}
+
+	return response.json();
+};
+
 export const transfer = async ({
 	fromId,
 	toId,

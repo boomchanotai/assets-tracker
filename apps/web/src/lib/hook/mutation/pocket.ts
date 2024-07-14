@@ -1,6 +1,20 @@
-import { transfer, widthdraw } from '@/api/pocket';
+import { createPocket, transfer, widthdraw } from '@/api/pocket';
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { toast } from 'svelte-sonner';
+
+export const useCreatePocketMutation = ({ accountId }: { accountId: string }) => {
+	const client = useQueryClient();
+
+	return createMutation({
+		mutationFn: createPocket,
+		onSuccess() {
+			client.invalidateQueries({
+				queryKey: ['account', accountId]
+			});
+			toast.success('Pocket created');
+		}
+	});
+};
 
 export const useTransferMutation = ({ accountId }: { accountId: string }) => {
 	const client = useQueryClient();
