@@ -3,6 +3,7 @@
 	import { cn } from '@/utils';
 	import Draggable from './Draggable.svelte';
 
+	export let accountId: string;
 	export let pockets: Pocket[];
 	export let id: string;
 	export let name: string;
@@ -11,6 +12,7 @@
 </script>
 
 <Draggable
+	{accountId}
 	draggableId={id}
 	draggable={true}
 	{pockets}

@@ -4,11 +4,12 @@
 	import TransferBalance from './dialog/TransferBalance.svelte';
 
 	export let pockets: Pocket[];
+	export let accountId: string;
 	export let draggableId: string;
 	export let draggable: boolean;
 
-	let fromPocket: string | null;
-	let toPocket: string | null;
+	let fromPocket: string;
+	let toPocket: string;
 
 	let openBalance = false;
 	function setOpenBalance(state: boolean) {
@@ -35,5 +36,5 @@
 		<slot />
 	</button>
 
-	<TransferBalance {fromPocket} {toPocket} {pockets} {openBalance} {setOpenBalance} />
+	<TransferBalance {accountId} {fromPocket} {toPocket} {pockets} {openBalance} {setOpenBalance} />
 </div>

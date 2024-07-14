@@ -9,9 +9,8 @@
 
 	$: currentAccount = useAccount({ id: accountId });
 	$: cashboxPocket = $currentAccount.data?.result.pockets.find(
-		(pocket) => pocket.name === 'Cashbox'
+		(pocket) => pocket.type === 'CASHBOX'
 	);
-	$: pockets = $currentAccount.data?.result.pockets.filter((pocket) => pocket.name !== 'Cashbox');
 </script>
 
 {#if $currentAccount.isFetching}
@@ -24,5 +23,7 @@
 			? parseFloat($currentAccount.data?.result.balance)
 			: 0}
 	/>
-	<Pockets {cashboxPocket} {pockets} />
+	{#if $currentAccount.data?.result.pockets}
+		<Pockets {accountId} {cashboxPocket} pockets={$currentAccount.data?.result.pockets} />
+	{/if}
 {/if}

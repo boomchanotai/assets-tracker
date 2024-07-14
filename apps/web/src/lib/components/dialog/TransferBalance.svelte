@@ -4,24 +4,36 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import Icon from '@iconify/svelte';
 	import type { Pocket } from '$lib/types';
+	import { useTransferMutation, useWithdrawMutation } from '@/hook/mutation/pocket';
 
+	export let accountId: string;
 	export let openBalance = false;
 	export let setOpenBalance: (state: boolean) => void;
 
-	export let fromPocket: string | null;
-	export let toPocket: string | null;
+	export let fromPocket: string;
+	export let toPocket: string;
 	export let pockets: Pocket[];
 
-	const getPocketName = (targetId: string | null) => {
+	const getPocketName = (targetId: string) => {
 		if (!targetId) return '';
 
 		switch (targetId) {
-			case 'cashbox':
-				return 'Cashbox';
-			case 'trash':
+			case 'TRASH':
 				return 'Out';
 			default:
 				return pockets.filter(({ id }) => id === targetId)[0].name;
+		}
+	};
+
+	const transferMutation = useTransferMutation({ accountId: accountId });
+	const withdrawMutation = useWithdrawMutation({ accountId: accountId });
+	let amount: number = 0;
+	const handleSubmit = (event: SubmitEvent) => {
+		event.preventDefault();
+		if (toPocket === 'TRASH') {
+			$withdrawMutation.mutate({ id: fromPocket, amount });
+		} else {
+			$transferMutation.mutate({ fromId: fromPocket, toId: toPocket, amount });
 		}
 	};
 </script>
@@ -35,11 +47,9 @@
 				<span> {getPocketName(toPocket)}</span>
 			</Dialog.Title>
 		</Dialog.Header>
-		<div class="flex flex-col justify-center items-center gap-4">
-			<Input id="balance" type="number" placeholder="Amount" />
-			<div>
-				<Button type="submit">Save changes</Button>
-			</div>
-		</div>
+		<form on:submit={handleSubmit} class="grid gap-4 py-4">
+			<Input bind:value={amount} id="balance" type="number" placeholder="Amount" />
+			<Button type="submit">Save changes</Button>
+		</form>
 	</Dialog.Content>
 </Dialog.Root>

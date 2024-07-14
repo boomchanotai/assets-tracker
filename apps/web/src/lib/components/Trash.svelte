@@ -2,13 +2,15 @@
 	import { cn } from '@/utils';
 	import Icon from '@iconify/svelte';
 	import Draggable from './Draggable.svelte';
-	import Pocket from './Pocket.svelte';
+	import type { Pocket } from '$lib/types';
 
+	export let accountId: string;
 	export let pockets: Pocket[];
-	const id = 'trash';
+	const id = 'TRASH';
 </script>
 
 <Draggable
+	{accountId}
 	draggableId={id}
 	draggable={false}
 	{pockets}
